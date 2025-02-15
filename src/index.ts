@@ -134,7 +134,29 @@ const app = new Elysia()
           has_channels: t.Boolean(),
         })
       })
-      .get('/:id/info', async ({ jwt, set }) => {
+      .get("/:id/channels", async ({ jwt, set, query, params: {id} }) => {
+        const profile = await jwt.verify(query.token)
+        if (!profile) {
+          set.status = 401;
+          return 'Unauthorized';
+        }
+        console.log("asd")
+        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+        const user = users[0];
+
+        const [groups] = await sql`SELECT id FROM groups WHERE ${user.id} = ANY(members)`.values();
+        console.log(groups);
+        if(!groups.includes(id)) {
+          set.status = 401;
+          return 'Unauthorized';
+        }
+
+        let [[channels]] = await sql`SELECT channels FROM groups WHERE id = ${id}`.values();
+        console.log(channels)
+
+        return channels.match(/[\w.-]+/g).map(String);
+      })
+      .get('/:id/info', async ({ jwt, set, params: {id} }) => {
 
       })
   )
