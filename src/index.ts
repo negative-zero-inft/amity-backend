@@ -9,7 +9,7 @@ function randomID() {
   const chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
   let result = "";
   for (let i = 0; i < 24; i++) {
-    result += chars[Math.round(Math.random() * 100 % 36)];
+    result += chars[Math.round(Math.random() * 100 % 35)];
   }
   return result;
 }
@@ -73,7 +73,71 @@ const app = new Elysia()
 
     return profile.id
   })
+  .group('/channel', (app) =>
+    app
+      .post('/create', async ({ jwt, set, body: { token, group_id, type, name, icon_id } }) => {
+        const profile = await jwt.verify(token)
+        if (!profile) {
+          set.status = 401;
+          return 'Unauthorized';
+        }
+        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+        const user = users[0];
+        const server = user.tag.split("@")[1];
+        const randomid = randomID();
 
+        await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
+        await sql`INSERT INTO channels (id, type, name, icon_id) VALUES 
+        (${randomid}, ${type}, ${name}, ${icon_id})`;
+        await sql`UPDATE groups SET channels = array_append(channels, ${randomid}) WHERE id = ${group_id}`
+
+      }, {
+        body: t.Object({
+          token: t.String(),
+          type: t.Number(),
+          name: t.String(),
+          group_id: t.String(),
+          icon_id: t.Optional(t.String())
+        })
+      })
+      .get('/:id/info', async ({ jwt, set }) => {
+
+      })
+      .post('/:id/send', async ({ jwt, set }) => {
+
+      })
+  )
+  .group('/group', (app) =>
+    app
+      .post('/create', async ({ jwt, set, body: { token, name, icon, description, is_public, has_channels } }) => {
+        const profile = await jwt.verify(token)
+        if (!profile) {
+          set.status = 401;
+          return 'Unauthorized';
+        }
+        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+        const user = users[0];
+        const server = user.tag.split("@")[1];
+        const randomid = randomID();
+
+        await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
+        await sql`INSERT INTO groups (id, name, icon, description, is_public, has_channels, members, owner_id) VALUES 
+        (${randomid}, ${name}, ${icon}, ${description}, ${is_public}, ${has_channels}, ARRAY[${profile.id}], ${profile.id})`;
+
+      }, {
+        body: t.Object({
+          token: t.String(),
+          name: t.String(),
+          icon: t.Optional(t.String()),
+          description: t.Optional(t.String()),
+          is_public: t.Boolean(),
+          has_channels: t.Boolean(),
+        })
+      })
+      .get('/:id/info', async ({ jwt, set }) => {
+
+      })
+  )
   .listen(3000);
 
 
