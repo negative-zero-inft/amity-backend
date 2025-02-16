@@ -36,7 +36,12 @@ const app = new Elysia()
 		})
 	})
 	.post('/signin', async ({ jwt, set, body: { tag, password } }) => {
-		const [user] = await sql`SELECT * FROM users WHERE tag = ${tag}`;
+		const usr = tag.split("@")
+		if(usr[1] != server){
+			set.status = 401; 
+			return "Incorrect instance";
+		}	
+		const [user] = await sql`SELECT * FROM users WHERE tag = ${usr[0]}`;
 		if (!user) {
 			set.status = 401;
 			return 'Unauthorized';
