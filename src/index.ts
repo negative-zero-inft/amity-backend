@@ -4,6 +4,7 @@ import { randomID } from './utils';
 import { google } from "./oauth/google"
 import { sql } from "./sql";
 import { github } from "./oauth/github";
+import { discord } from "./oauth/discord";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -21,6 +22,7 @@ const app = new Elysia()
 		app
 	.use(google)
 	.use(github)
+    .use(discord)
 	)
 	.post('/register', async ({ set, body: { password, tag, name, avatar } }) => {
 		const randomid = randomID();
