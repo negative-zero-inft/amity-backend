@@ -1,18 +1,13 @@
 import { t, Elysia } from "elysia";
+import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
-import { SQL } from "bun";
+import { randomID } from './utils';
+import { google } from "./oauth/google"
+import { sql } from "./sql";
+import { github } from "./oauth/github";
 
 console.log(process.env.POSTGRES_URL)
-const sql = new SQL(new URL(process.env.POSTGRES_URL ?? ""));
-
-function randomID() {
-  const chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
-  let result = "";
-  for (let i = 0; i < 24; i++) {
-    result += chars[Math.round(Math.random() * 100 % 35)];
-  }
-  return result;
-}
+const server = process.env.SERVER_URL ?? "";
 
 const app = new Elysia()
   .use(
@@ -23,14 +18,13 @@ const app = new Elysia()
     })
   )
   .get("/", () => "loqa")
+  .group("/auth", (app) =>
+    app
+    .use(google)
+    .use(github)
+  )
   .post('/register', async ({ set, body: { password, tag, name, avatar } }) => {
-    if (tag.split("@").length > 1) {
-      set.status = 400;
-      return "Bad request";
-    }
-    const server = tag.split("@")[1];
     const randomid = randomID();
-    console.log(randomid, server);
     await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
     await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
     (${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
@@ -43,12 +37,11 @@ const app = new Elysia()
     })
   })
   .post('/signin', async ({ jwt, set, body: { tag, password } }) => {
-    const users = await sql`SELECT * FROM users WHERE tag = ${tag}`;
-    if (users.length <= 0) {
-      set.status = 500;
-      return `could not find user`;
+    const [user] = await sql`SELECT * FROM users WHERE tag = ${tag}`;
+    if (!user) {
+      set.status = 401;
+      return 'Unauthorized';
     }
-    const user = users[0];
     const isMatch = await Bun.password.verify(password, user.password);
     if (!isMatch) {
       set.status = 403;
@@ -81,9 +74,6 @@ const app = new Elysia()
           set.status = 401;
           return 'Unauthorized';
         }
-        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-        const user = users[0];
-        const server = user.tag.split("@")[1];
         const randomid = randomID();
 
         await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
@@ -115,9 +105,6 @@ const app = new Elysia()
           set.status = 401;
           return 'Unauthorized';
         }
-        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-        const user = users[0];
-        const server = user.tag.split("@")[1];
         const randomid = randomID();
 
         await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
@@ -134,19 +121,16 @@ const app = new Elysia()
           has_channels: t.Boolean(),
         })
       })
-      .get("/:id/channels", async ({ jwt, set, query, params: {id} }) => {
+      .get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
         const profile = await jwt.verify(query.token)
         if (!profile) {
           set.status = 401;
           return 'Unauthorized';
         }
-        console.log("asd")
-        const users = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-        const user = users[0];
-
-        const [groups] = await sql`SELECT id FROM groups WHERE ${user.id} = ANY(members)`.values();
+        const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+        const [groups] = await sql`SELECT id FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`.values();
         console.log(groups);
-        if(!groups.includes(id)) {
+        if (!groups) {
           set.status = 401;
           return 'Unauthorized';
         }
@@ -154,10 +138,19 @@ const app = new Elysia()
         let [[channels]] = await sql`SELECT channels FROM groups WHERE id = ${id}`.values();
         console.log(channels)
 
-        return channels.match(/[\w.-]+/g).map(String);
+        return channels.match(/[\w.-]+/g).map(String); //converts a postgres array to a JS one
       })
-      .get('/:id/info', async ({ jwt, set, params: {id} }) => {
-
+      .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
+        const profile = await jwt.verify(query.token)
+        if (!profile) {
+          set.status = 401;
+          return 'Unauthorized';
+        }
+        const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+        let [group] = await sql`SELECT * FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`;
+        group.channels = group.channels.match(/[\w.-]+/g).map(String);
+        group.members = group.members.match(/[\w.-]+/g).map(String);
+        return group;
       })
   )
   .listen(3000);

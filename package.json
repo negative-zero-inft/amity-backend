@@ -6,7 +6,9 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "arctic": "^3.3.0",
+    "elysia": "latest",
+    "elysia-oauth2": "^2.0.0"
   },
   "devDependencies": {
     "bun-types": "latest"
