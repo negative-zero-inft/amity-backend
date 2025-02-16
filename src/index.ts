@@ -67,20 +67,20 @@ const app = new Elysia()
 	})
 	.group('/channel', (app) =>
 		app
-	.post('/create', async ({ jwt, set, body: { token, group_id, type, name, icon_id } }) => {
-		const profile = await jwt.verify(token)
-		if (!profile) {
-			set.status = 401;
-			return 'Unauthorized';
-		}
-		const randomid = randomID();
-		
-		await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
-		await sql`INSERT INTO channels (id, type, name, icon_id) VALUES 
-			(${randomid}, ${type}, ${name}, ${icon_id})`;
-		await sql`UPDATE groups SET channels = array_append(channels, ${randomid}) WHERE id = ${group_id}`
-		
-	}, {
+		.post('/create', async ({ jwt, set, body: { token, group_id, type, name, icon_id } }) => {
+			const profile = await jwt.verify(token)
+			if (!profile) {
+				set.status = 401;
+				return 'Unauthorized';
+			}
+			const randomid = randomID();
+			
+			await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
+			await sql`INSERT INTO channels (id, type, name, icon_id) VALUES 
+				(${randomid}, ${type}, ${name}, ${icon_id})`;
+			await sql`UPDATE groups SET channels = array_append(channels, ${randomid}) WHERE id = ${group_id}`
+			
+		}, {
 		body: t.Object({
 			token: t.String(),
 			type: t.Number(),
@@ -98,59 +98,59 @@ const app = new Elysia()
 	)
 	.group('/group', (app) =>
 		app
-	.post('/create', async ({ jwt, set, body: { token, name, icon, description, is_public, has_channels } }) => {
-		const profile = await jwt.verify(token)
-		if (!profile) {
-			set.status = 401;
-			return 'Unauthorized';
-		}
-		const randomid = randomID();
-		
-		await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
-		await sql`INSERT INTO groups (id, name, icon, description, is_public, has_channels, members, owner_id) VALUES 
-			(${randomid}, ${name}, ${icon}, ${description}, ${is_public}, ${has_channels}, ARRAY[${profile.id}], ${profile.id})`;
-		
-	}, {
-		body: t.Object({
-			token: t.String(),
-			name: t.String(),
-			icon: t.Optional(t.String()),
-			description: t.Optional(t.String()),
-			is_public: t.Boolean(),
-			has_channels: t.Boolean(),
+		.post('/create', async ({ jwt, set, body: { token, name, icon, description, is_public, has_channels } }) => {
+			const profile = await jwt.verify(token)
+			if (!profile) {
+				set.status = 401;
+				return 'Unauthorized';
+			}
+			const randomid = randomID();
+			
+			await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
+			await sql`INSERT INTO groups (id, name, icon, description, is_public, has_channels, members, owner_id) VALUES 
+				(${randomid}, ${name}, ${icon}, ${description}, ${is_public}, ${has_channels}, ARRAY[${profile.id}], ${profile.id})`;
+			
+		}, {
+			body: t.Object({
+				token: t.String(),
+				name: t.String(),
+				icon: t.Optional(t.String()),
+				description: t.Optional(t.String()),
+				is_public: t.Boolean(),
+				has_channels: t.Boolean(),
+			})
 		})
-	})
-	.get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
-		const profile = await jwt.verify(query.token)
-		if (!profile) {
-			set.status = 401;
-			return 'Unauthorized';
-		}
-		const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-		const [groups] = await sql`SELECT id FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`.values();
-		console.log(groups);
-		if (!groups) {
-			set.status = 401;
-			return 'Unauthorized';
-		}
-		
-		let [[channels]] = await sql`SELECT channels FROM groups WHERE id = ${id}`.values();
-		console.log(channels)
-		
-		return channels.match(/[\w.-]+/g).map(String); //converts a postgres array to a JS one
-	})
-	.get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
-		const profile = await jwt.verify(query.token)
-		if (!profile) {
-			set.status = 401;
-			return 'Unauthorized';
-		}
-		const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-		let [group] = await sql`SELECT * FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`;
-		group.channels = group.channels.match(/[\w.-]+/g).map(String);
-		group.members = group.members.match(/[\w.-]+/g).map(String);
-		return group;
-	})
+		.get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
+			const profile = await jwt.verify(query.token)
+			if (!profile) {
+				set.status = 401;
+				return 'Unauthorized';
+			}
+			const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+			const [groups] = await sql`SELECT id FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`.values();
+			console.log(groups);
+			if (!groups) {
+				set.status = 401;
+				return 'Unauthorized';
+			}
+			
+			let [[channels]] = await sql`SELECT channels FROM groups WHERE id = ${id}`.values();
+			console.log(channels)
+			
+			return channels.match(/[\w.-]+/g).map(String); //converts a postgres array to a JS one
+		})
+		.get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
+			const profile = await jwt.verify(query.token)
+			if (!profile) {
+				set.status = 401;
+				return 'Unauthorized';
+			}
+			const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
+			let [group] = await sql`SELECT * FROM groups WHERE ${user.id} = ANY(members) AND id = ${id}`;
+			group.channels = group.channels.match(/[\w.-]+/g).map(String);
+			group.members = group.members.match(/[\w.-]+/g).map(String);
+			return group;
+		})
 	)
 .listen(3000);
 
