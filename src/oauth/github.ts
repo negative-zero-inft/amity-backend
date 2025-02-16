@@ -8,8 +8,8 @@ export const github = new Elysia()
     .use(
         oauth2({
             GitHub: [
-                "Iv23liN0X4TnX2hnaAZ9",
-                "91ef52f6ccbc5123803dabf19a475ce629a26113",
+                process.env.GITHUB_ID ?? "",
+                process.env.GITHUB_SECRET ?? "",
                 `http://${process.env.SERVER_URL}/auth/github/callback`
             ]
         })
@@ -23,17 +23,14 @@ export const github = new Elysia()
     )
     .group("/github", (app) =>
         app.get("/", async ({ oauth2, redirect }) => {
-          const url = oauth2.createURL("GitHub", ["email"]);
+          const url = oauth2.createURL("GitHub", ["user:email"]);
           url.searchParams.set("access_type", "offline");
 
           return redirect(url.href);
         })
           .get("/callback", async ({ oauth2, jwt }) => {
             const tokens = await oauth2.authorize("GitHub");
-
             const accessToken = tokens.accessToken();
-            console.log(tokens.data);
-            console.log(accessToken);
 
             const response = await fetch("https://api.github.com/user", {
               headers: {
@@ -41,7 +38,6 @@ export const github = new Elysia()
               }
             })
             const data = await response.json();
-            console.log(data);
 
             const mailResponse = await fetch("https://api.github.com/user/emails", {
               headers: {
@@ -52,16 +48,18 @@ export const github = new Elysia()
             console.log(emails);
 
             const email = emails[0]["email"];
+            console.log(email)
             const picture = data.avatar_url;
             const [user] = await sql`SELECT id FROM users WHERE email = ${email}`;
+            console.log(user);
             if(!user) {
               //create a user
               const randomid = randomID();
               const tag = email.split("@")[0];
 
               await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${process.env.SERVER_URL})`;
-              await sql`INSERT INTO users (id, tag, name, avatar) VALUES 
-              (${randomid}, ${tag}, ${tag}, ${picture})`;
+              await sql`INSERT INTO users (id, tag, name, avatar, email) VALUES 
+              (${randomid}, ${tag}, ${tag}, ${picture}, ${email})`;
               return await jwt.sign({ id: randomid });
             } else return await jwt.sign({ id: user.id })
           })

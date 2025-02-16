@@ -1,5 +1,4 @@
 import { t, Elysia } from "elysia";
-import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
 import { randomID } from './utils';
 import { google } from "./oauth/google"

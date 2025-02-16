@@ -46,8 +46,8 @@ export const google = new Elysia()
               const tag = email.split("@")[0];
 
               await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${process.env.SERVER_URL})`;
-              await sql`INSERT INTO users (id, tag, name, avatar) VALUES 
-              (${randomid}, ${tag}, ${tag}, ${picture})`;
+              await sql`INSERT INTO users (id, tag, name, avatar, email) VALUES 
+              (${randomid}, ${tag}, ${tag}, ${picture}, ${email})`;
               return await jwt.sign({ id: randomid });
             } else return await jwt.sign({ id: user.id })
           })
