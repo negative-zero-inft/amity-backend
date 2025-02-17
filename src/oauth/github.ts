@@ -50,17 +50,17 @@ export const github = new Elysia()
                 const email = emails[0]["email"];
                 console.log(email)
                 const picture = data.avatar_url;
-                const [user] = await sql`SELECT id FROM users WHERE email = ${email}`;
-                console.log(user);
-                if (!user) {
+                const [userId] = await sql`SELECT id FROM connections WHERE identifier = ${email} AND name = 'github'`;
+                if (!userId) {
                     //create a user
                     const randomid = randomID();
                     const tag = email.split("@")[0];
 
                     await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${process.env.SERVER_URL})`;
                     await sql`INSERT INTO users (id, tag, name, avatar, email) VALUES 
-              (${randomid}, ${tag}, ${tag}, ${picture}, ${email})`;
+                    (${randomid}, ${tag}, ${tag}, ${picture}, ${email})`;
+                    await sql`INSERT INTO connections (id, name, identifier) VALUES (${randomid}, 'github', ${email})`;
                     return await jwt.sign({ id: randomid });
-                } else return await jwt.sign({ id: user.id })
+                } else return await jwt.sign({ id: userId })
             })
     )
