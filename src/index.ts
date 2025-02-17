@@ -6,6 +6,7 @@ import { sql } from "./sql";
 import { github } from "./oauth/github";
 import { discord } from "./oauth/discord";
 import { osu } from "./oauth/osu";
+import { user } from "./user";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -19,6 +20,7 @@ const app = new Elysia()
         })
     )
     .get("/", () => "loqa")
+    .use(user)
     .group("/auth", (app) =>
         app
             .use(google)
