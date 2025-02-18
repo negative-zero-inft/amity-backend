@@ -1,8 +1,9 @@
 import { Elysia } from 'elysia'
 import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
-import { sql } from "../sql";
 import { randomID, randomChars } from '../utils';
+import { User } from '../schema/user';
+import { AmityId } from '../schema/amityId';
 
 export const osu = new Elysia()
     .use(
@@ -41,19 +42,29 @@ export const osu = new Elysia()
                 console.log(osuUser);
 
                 const username = osuUser.username, picture = osuUser.avatar_url;
-                const [userId] = await sql`SELECT id FROM connections WHERE identifier = ${username} AND name = 'osu'`;
+                // const [userId] = await sql`SELECT id FROM connections WHERE identifier = ${username} AND name = 'osu'`;
+                const userId = await User.findOne({"connections.name": "osu", "connections.secret": username});
                 if (!userId) {
                     //create a user
                     const randomid = randomID();
                     const tag = username + randomChars(5);
 
-                    await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${process.env.SERVER_URL})`;
-                    await sql`INSERT INTO users (id, tag, name, avatar) VALUES 
-                    (${randomid}, ${tag}, ${tag}, ${picture})`;
-                    await sql`INSERT INTO connections (id, name, identifier) VALUES (${randomid}, 'osu', ${username})`;
+                    const amityId = new AmityId({id: randomid, server: process.env.SERVER_URL})
+
+                    const user = new User({
+                        id: amityId,
+                        tag: tag,
+                        name: tag,
+                        avatar: picture,
+                        connections: [{
+                            name: "osu",
+                            secret: username
+                        }]
+                    });
+                    await user.save();
                     return await jwt.sign({ id: randomid });
                 } else {
-                    return await jwt.sign({ id: userId })
+                    return await jwt.sign({ id: userId.id })
                 }
             })
     )

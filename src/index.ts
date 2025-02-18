@@ -2,11 +2,14 @@ import { t, Elysia } from "elysia";
 import { jwt } from '@elysiajs/jwt'
 import { randomID } from './utils';
 import { google } from "./oauth/google"
-import { sql } from "./sql";
 import { github } from "./oauth/github";
 import { discord } from "./oauth/discord";
 import { osu } from "./oauth/osu";
 import { user } from "./user";
+import { User } from "./schema/user";
+import { Group } from "./schema/group";
+import { Channel } from "./schema/channel";
+import { AmityId } from "./schema/amityId";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -30,9 +33,20 @@ const app = new Elysia()
     )
     .post('/register', async ({ set, body: { password, tag, name, avatar } }) => {
         const randomid = randomID();
-        await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
-        await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
-		(${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
+        // await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
+        // await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
+		// (${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
+
+const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+
+        const user = new User({
+            id: amityId,
+            tag: tag,
+            name: name,
+            avatar: avatar,
+            password: await Bun.password.hash(password)
+        });
+        await user.save();
     }, {
         body: t.Object({
             tag: t.String(),
@@ -47,12 +61,13 @@ const app = new Elysia()
             set.status = 401;
             return "Incorrect instance";
         }
-        const [user] = await sql`SELECT * FROM users WHERE tag = ${usr[0]}`;
+        // const [user] = await sql`SELECT * FROM users WHERE tag = ${usr[0]}`;
+        const user = await User.findOne({tag: usr[0]});
         if (!user) {
             set.status = 401;
             return 'Unauthorized';
         }
-        const isMatch = await Bun.password.verify(password, user.password);
+        const isMatch = await Bun.password.verify(password, user.password ?? "");
         if (!isMatch) {
             set.status = 403;
             return `wrong password`;
@@ -85,16 +100,22 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const randomid = randomID();
-                const [owner] = await sql`SELECT owner_id FROM groups WHERE id = ${group_id} AND owner_id = ${profile.id}`;
-                if(!owner) {
+                const owner = await Group.findOne({id: group_id, owner_id: profile.id})
+                if (!owner) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
 
-                await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
-                await sql`INSERT INTO channels (id, type, name, icon_id) VALUES 
-				(${randomid}, ${type}, ${name}, ${icon_id})`;
-                await sql`UPDATE groups SET channels = array_append(channels, ${randomid}) WHERE id = ${group_id}`
+                const channel = new Channel({
+                    id: randomid,
+                    type: type,
+                    name: name,
+                    icon_id: icon_id
+                });
+
+                const group = await Group.findOne({id: group_id});;
+                group?.channels.push(channel);
+                group?.save();
 
             }, {
                 body: t.Object({
@@ -122,9 +143,17 @@ const app = new Elysia()
                 }
                 const randomid = randomID();
 
-                await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
-                await sql`INSERT INTO groups (id, name, icon, description, is_public, has_channels, members, owner_id) VALUES 
-				(${randomid}, ${name}, ${icon}, ${description}, ${is_public}, ${has_channels}, ARRAY[${profile.id}], ${profile.id})`;
+                const group = new Group({
+                    id: randomid,
+                    name: name,
+                    icon: icon,
+                    description: description,
+                    is_public: is_public,
+                    has_channels: has_channels,
+                    members: [profile.id],
+                    owner_id: profile.id
+                })
+                await group.save()
 
             }, {
                 body: t.Object({
@@ -138,38 +167,34 @@ const app = new Elysia()
             })
             .get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
-                const [group] = await sql`SELECT is_public, channels FROM groups WHERE id = ${id}`.values();
-                const is_public = group[0];
-                const channels = group[1];
-                if (!is_public) {
+                const group = await Group.findOne({id: id});
+                if (!group?.is_public) {
                     if (!profile) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    const [isInGroup] = await sql`SELECT is_public FROM groups WHERE ${profile.id} = ANY(members) AND id = ${id}`.values();
+                    const isInGroup = await Group.findOne({members: profile.id, id: id});
                     if (!isInGroup) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
                 }
-                return channels.match(/[\w.-]+/g).map(String); //converts a postgres array to a JS one
+                return group?.channels;
             })
             .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
-                let [group] = await sql`SELECT * FROM groups WHERE id = ${id}`;
-                if(!group.is_public) {
+                const group = await Group.findOne({id: id});
+                if (!group?.is_public) {
                     if (!profile) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    const [isInGroup] = await sql`SELECT is_public FROM groups WHERE ${profile.id} = ANY(members) AND id = ${id}`.values();
+                    const isInGroup = await Group.findOne({members: profile.id, id: id});
                     if (!isInGroup) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
                 }
-                group.channels = group.channels.match(/[\w.-]+/g).map(String);
-                group.members = group.members.match(/[\w.-]+/g).map(String);
                 return group;
             })
     )

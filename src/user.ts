@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia'
 import { jwt } from '@elysiajs/jwt'
-import { sql } from "./sql";
+import { User } from './schema/user';
 
 export const user = new Elysia()
     .use(
@@ -13,16 +13,9 @@ export const user = new Elysia()
     .group("/user", (app) =>
         app
             .get('/:id/info', async ({ jwt, set, params: { id } }) => {
-                const [user] = await sql`SELECT * FROM users WHERE id = ${id}`;
-                delete user.email;
-                delete user.password;
-
-                const fields = ['followers', 'follows', 'public_channels'];
-                for (const field of fields) {
-                    if (user[field]) {
-                        user[field] = user[field].match(/[\w.-]+/g).map(String);
-                    }
-                }
+                const user = await User.findOne({ id: id });
+                delete user!.email;
+                delete user!.password;
 
                 return user;
             })
@@ -34,21 +27,14 @@ export const user = new Elysia()
                             set.status = 401;
                             return 'Unauthorized';
                         }
-                        const [user] = await sql`SELECT * FROM users WHERE id = ${profile.id}`;
-                        delete user.password;
-
-                        const fields = ['followers', 'follows', 'public_channels'];
-                        for (const field of fields) {
-                            if (user[field]) {
-                                user[field] = user[field].match(/[\w.-]+/g).map(String);
-                            }
-                        }
+                        const user = await User.findOne({ id: profile.id });
+                        delete user!.password;
 
                         return user;
                     })
-                    .put("/", async ({ jwt, set, query}) => {}, {
+                    .put("/", async ({ jwt, set, query }) => { }, {
                         body: t.Object({
-                            
+                            //this should update the user data with new stuff
                         })
                     })
             )

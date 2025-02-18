@@ -1,8 +1,9 @@
 import { Elysia } from 'elysia'
 import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
-import { sql } from "../sql";
 import { randomID } from '../utils';
+import { User } from '../schema/user';
+import { AmityId } from '../schema/amityId';
 
 export const google = new Elysia()
     .use(
@@ -39,17 +40,27 @@ export const google = new Elysia()
                 });
 
                 const { email, picture } = await response.json();
-                const [userId] = await sql`SELECT id FROM connections WHERE identifier = ${email} AND name = 'google'`;
+                const userId = await User.findOne({"connections.name": "google", "connections.secret": email});
                 if (!userId) {
                     //create a user
                     const randomid = randomID();
                     const tag = email.split("@")[0];
 
-                    await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${process.env.SERVER_URL})`;
-                    await sql`INSERT INTO users (id, tag, name, avatar, email) VALUES 
-                    (${randomid}, ${tag}, ${tag}, ${picture}, ${email})`;
-                    await sql`INSERT INTO connections (id, name, identifier) VALUES (${randomid}, 'google', ${email})`;
+                    const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+
+                    const user = new User({
+                        id: amityId,
+                        tag: tag,
+                        name: tag,
+                        avatar: picture,
+                        email: email,
+                        connections: [{
+                            name: "google",
+                            secret: email
+                        }]
+                    });
+                    await user.save();
                     return await jwt.sign({ id: randomid });
-                } else return await jwt.sign({ id: userId })
+                } else return await jwt.sign({ id: userId.id })
             })
     )
