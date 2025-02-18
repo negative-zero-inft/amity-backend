@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import { User } from './user';
-import { Channel } from './channel';
+import { Channel, channelSchema } from './channel';
 import { AmityId, amityIdSchema } from './amityId';
 
 const groupSchema = new mongoose.Schema({
@@ -12,7 +12,7 @@ const groupSchema = new mongoose.Schema({
     owner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     is_public: Boolean,
     has_channels: Boolean,
-    channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }]
+    channels: [channelSchema]
 });
 
 export type Group = mongoose.InferSchemaType<typeof groupSchema>;

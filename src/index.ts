@@ -116,9 +116,8 @@ const app = new Elysia()
                 });
 
                 group?.channels.push(channel);
-                await channel.save();
                 await group?.save();
-
+                return channel;
             }, {
                 body: t.Object({
                     token: t.String(),
@@ -127,9 +126,6 @@ const app = new Elysia()
                     group_id: t.String(),
                     icon_id: t.Optional(t.String())
                 })
-            })
-            .get('/:id/info', async ({ jwt, set }) => {
-                //public channels should  be accessible to everyone
             })
             .post('/:id/send', async ({ jwt, set }) => {
 
@@ -156,8 +152,8 @@ const app = new Elysia()
                     members: [profile._id],
                     owner_id: profile._id
                 })
-                await group.save()
-
+                await group.save();
+                return group;
             }, {
                 body: t.Object({
                     token: t.String(),
@@ -167,22 +163,6 @@ const app = new Elysia()
                     is_public: t.Boolean(),
                     has_channels: t.Boolean(),
                 })
-            })
-            .get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
-                const profile = await jwt.verify(query.token)
-                const group = await Group.findOne({ 'id.id': id });
-                if (!group?.is_public) {
-                    if (!profile) {
-                        set.status = 401;
-                        return 'Unauthorized';
-                    }
-                    const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
-                    if (!isInGroup) {
-                        set.status = 401;
-                        return 'Unauthorized';
-                    }
-                }
-                return group?.channels;
             })
             .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
