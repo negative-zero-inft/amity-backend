@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose';
 import { AmityId, amityIdSchema } from './amityId';
 
-const channelSchema = new mongoose.Schema({
+export const channelSchema = new mongoose.Schema({
     id: amityIdSchema,
     type: Number,
     name: String,
