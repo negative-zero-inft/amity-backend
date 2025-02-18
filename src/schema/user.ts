@@ -1,16 +1,16 @@
 import * as mongoose from 'mongoose';
 import {Channel} from './channel'
-import { AmityId } from './amityId';
+import { AmityId, amityIdSchema } from './amityId';
 
 const userSchema = new mongoose.Schema({
-    id: {type: AmityId, required: true},
+    id: amityIdSchema,
     server: String,
     tag: String,
     name: String,
     description: String,
     avatar: String,
     banner: String,
-    public_channels: [Channel],
+    public_channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }],
     followers: [String],
     follows: [String],
     public_key: String,

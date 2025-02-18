@@ -1,18 +1,18 @@
 import * as mongoose from 'mongoose';
 import { User } from './user';
 import { Channel } from './channel';
-import { AmityId } from './amityId';
+import { AmityId, amityIdSchema } from './amityId';
 
 const groupSchema = new mongoose.Schema({
-    id: { type: AmityId, required: true },
+    id: amityIdSchema,
     name: String,
-    members: [User],
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     is_verified: Boolean,
     description: String,
-    owner_id: String,
+    owner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     is_public: Boolean,
     has_channels: Boolean,
-    channels: [Channel]
+    channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }]
 });
 
 export type Group = mongoose.InferSchemaType<typeof groupSchema>;

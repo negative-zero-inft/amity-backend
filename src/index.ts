@@ -10,6 +10,7 @@ import { User } from "./schema/user";
 import { Group } from "./schema/group";
 import { Channel } from "./schema/channel";
 import { AmityId } from "./schema/amityId";
+import mongoose from "mongoose";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -35,9 +36,9 @@ const app = new Elysia()
         const randomid = randomID();
         // await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
         // await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
-		// (${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
+        // (${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
 
-const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+        const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
 
         const user = new User({
             id: amityId,
@@ -61,8 +62,8 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
             set.status = 401;
             return "Incorrect instance";
         }
-        // const [user] = await sql`SELECT * FROM users WHERE tag = ${usr[0]}`;
-        const user = await User.findOne({tag: usr[0]});
+        const user = await User.findOne({ tag: usr[0] });
+
         if (!user) {
             set.status = 401;
             return 'Unauthorized';
@@ -72,8 +73,8 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
             set.status = 403;
             return `wrong password`;
         }
-
-        return await jwt.sign({ id: user.id })
+        console.log(user);
+        return await jwt.sign({ id: user.id.id, _id: user._id.toString() })
     }, {
         body: t.Object({
             tag: t.String(),
@@ -100,22 +101,23 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
                     return 'Unauthorized';
                 }
                 const randomid = randomID();
-                const owner = await Group.findOne({id: group_id, owner_id: profile.id})
+                const owner = await Group.findOne({ id: group_id, owner_id: profile.id })
                 if (!owner) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
 
+                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
                 const channel = new Channel({
-                    id: randomid,
+                    id: amityId,
                     type: type,
                     name: name,
                     icon_id: icon_id
                 });
 
-                const group = await Group.findOne({id: group_id});;
+                const group = await Group.findOne({ id: group_id });
                 group?.channels.push(channel);
-                group?.save();
+                await group?.save();
 
             }, {
                 body: t.Object({
@@ -142,16 +144,17 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
                     return 'Unauthorized';
                 }
                 const randomid = randomID();
+                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
 
                 const group = new Group({
-                    id: randomid,
+                    id: amityId,
                     name: name,
                     icon: icon,
                     description: description,
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [profile.id],
-                    owner_id: profile.id
+                    members: [profile._id],
+                    owner_id: profile._id
                 })
                 await group.save()
 
@@ -167,13 +170,13 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
             })
             .get("/:id/channels", async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
-                const group = await Group.findOne({id: id});
+                const group = await Group.findOne({ 'id.id': id });
                 if (!group?.is_public) {
                     if (!profile) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    const isInGroup = await Group.findOne({members: profile.id, id: id});
+                    const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
                     if (!isInGroup) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -183,13 +186,13 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
             })
             .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
-                const group = await Group.findOne({id: id});
+                const group = await Group.findOne({ 'id.id': id });
                 if (!group?.is_public) {
                     if (!profile) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    const isInGroup = await Group.findOne({members: profile.id, id: id});
+                    const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
                     if (!isInGroup) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -200,6 +203,8 @@ const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
     )
     .listen(3000);
 
+
+mongoose.connect(process.env.MONGODB_URL ?? "");
 
 console.log(
     `amity-backend is running at ${app.server?.hostname}:${app.server?.port}`

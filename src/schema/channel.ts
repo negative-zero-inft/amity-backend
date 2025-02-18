@@ -1,8 +1,8 @@
 import * as mongoose from 'mongoose';
-import { AmityId } from './amityId';
+import { AmityId, amityIdSchema } from './amityId';
 
 const channelSchema = new mongoose.Schema({
-    id: { type: AmityId, required: true },
+    id: amityIdSchema,
     type: Number,
     name: String,
     icon_id: String

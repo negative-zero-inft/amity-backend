@@ -14,6 +14,7 @@ export const user = new Elysia()
         app
             .get('/:id/info', async ({ jwt, set, params: { id } }) => {
                 const user = await User.findOne({ id: id });
+                console.log(user);
                 delete user!.email;
                 delete user!.password;
 
