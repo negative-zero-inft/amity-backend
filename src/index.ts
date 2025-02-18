@@ -101,8 +101,8 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const randomid = randomID();
-                const owner = await Group.findOne({ id: group_id, owner_id: profile.id })
-                if (!owner) {
+                const group = await Group.findOne({ 'id.id': group_id, owner_id: profile._id })
+                if (!group) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
@@ -115,8 +115,8 @@ const app = new Elysia()
                     icon_id: icon_id
                 });
 
-                const group = await Group.findOne({ id: group_id });
                 group?.channels.push(channel);
+                await channel.save();
                 await group?.save();
 
             }, {
