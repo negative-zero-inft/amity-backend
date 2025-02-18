@@ -61,6 +61,6 @@ export const google = new Elysia()
                     });
                     await user.save();
                     return await jwt.sign({ id: randomid });
-                } else return await jwt.sign({ id: userId.id.id, _id: user._id.toString() })
+                } else return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
             })
     )
