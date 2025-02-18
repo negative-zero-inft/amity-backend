@@ -13,7 +13,7 @@ export const user = new Elysia()
     .group("/user", (app) =>
         app
             .get('/:id/info', async ({ jwt, set, params: { id } }) => {
-                const user = await User.findOne({ id: id });
+                const user = await User.findOne({ 'id.id': id });
                 console.log(user);
                 delete user!.email;
                 delete user!.password;
@@ -28,7 +28,7 @@ export const user = new Elysia()
                             set.status = 401;
                             return 'Unauthorized';
                         }
-                        const user = await User.findOne({ id: profile.id });
+                        const user = await User.findOne({ 'id.id': profile.id });
                         delete user!.password;
 
                         return user;
