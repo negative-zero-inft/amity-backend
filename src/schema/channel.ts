@@ -1,10 +1,11 @@
 import * as mongoose from 'mongoose';
-import { AmityId, amityIdSchema } from './amityId';
+import { amityIdSchema } from './amityId';
 
 export const channelSchema = new mongoose.Schema({
     id: amityIdSchema,
     type: Number,
     name: String,
+    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     icon_id: String
 });
 

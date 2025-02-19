@@ -127,6 +127,27 @@ const app = new Elysia()
                     icon_id: t.Optional(t.String())
                 })
             })
+            .get("/:id/messages", async({ jwt, set, query, params: { id } }) => {
+                const profile = await jwt.verify(query.token)
+                const limit = Number(query.limit) < 100 ? Number(query.limit) : 100;
+                const channel = await Channel.findOne({ 'id.id': id }).populate({
+                    path: 'messages',
+                    options: {limit: limit, sort: {date: 'descending'}}
+                });
+                const group = await Group.findOne({ 'channels': id });
+                if (!group?.is_public) {
+                    if (!profile) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
+                    const isInGroup = await Group.findOne({ members: profile.id, 'channels': id });
+                    if (!isInGroup) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
+                }
+                return channel?.messages;
+            })
             .post('/:id/send', async ({ jwt, set }) => {
 
             })

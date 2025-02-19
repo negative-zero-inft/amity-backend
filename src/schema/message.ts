@@ -4,6 +4,7 @@ import { amityIdSchema } from './amityId';
 export const messageSchema = new mongoose.Schema({
     id: amityIdSchema,
     author_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    date: Date,
     encrypted: Boolean,
     content: String, //for groups, etc. where the message isn't encrypted
     contents: [{ //if the message is encrypted, then this shouldn't be empty
