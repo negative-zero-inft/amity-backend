@@ -4,7 +4,6 @@ import { AmityId, amityIdSchema } from './amityId';
 
 const userSchema = new mongoose.Schema({
     id: amityIdSchema,
-    server: String,
     tag: String,
     name: String,
     description: String,

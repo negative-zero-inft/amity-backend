@@ -29,13 +29,25 @@ export const user = new Elysia()
                             return 'Unauthorized';
                         }
                         const user = await User.findOne({ 'id.id': profile.id });
-                        delete user!.password;
+                        delete user!.password;  
 
                         return user;
                     })
-                    .put("/", async ({ jwt, set, query }) => { }, {
+                    .put("/", async ({ jwt, set, query, body }) => {
+                        const profile = await jwt.verify(query.token)
+                        if (!profile) {
+                            set.status = 401;
+                            return 'Unauthorized';
+                        }
+                        await User.findOneAndUpdate({"id.id": profile.id}, body);
+                    }, {
                         body: t.Object({
                             //this should update the user data with new stuff
+                            name: t.String(),
+                            description: t.String(),
+                            avatar: t.String(),
+                            banner: t.String(),
+                            email: t.String()
                         })
                     })
             )
