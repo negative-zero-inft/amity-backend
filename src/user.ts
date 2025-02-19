@@ -31,7 +31,7 @@ export const user = new Elysia()
                         const user = await User.findOne({ 'id.id': profile.id });
                         delete user!.password;  
 
-                        return user;
+                        return JSON.stringify(user);
                     })
                     .put("/", async ({ jwt, set, query, body }) => {
                         const profile = await jwt.verify(query.token)

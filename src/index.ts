@@ -117,7 +117,7 @@ const app = new Elysia()
 
                 group?.channels.push(channel);
                 await group?.save();
-                return channel;
+                return JSON.stringify(channel);
             }, {
                 body: t.Object({
                     token: t.String(),
@@ -153,7 +153,7 @@ const app = new Elysia()
                     owner_id: profile._id
                 })
                 await group.save();
-                return group;
+                return JSON.stringify(group);
             }, {
                 body: t.Object({
                     token: t.String(),
@@ -178,7 +178,7 @@ const app = new Elysia()
                         return 'Unauthorized';
                     }
                 }
-                return group;
+                return JSON.stringify(group);
             })
     )
     .listen(3000);
