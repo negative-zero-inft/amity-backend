@@ -11,6 +11,7 @@ import { Group } from "./schema/group";
 import { Channel } from "./schema/channel";
 import { AmityId } from "./schema/amityId";
 import mongoose from "mongoose";
+import { Message } from "./schema/message";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -114,7 +115,7 @@ const app = new Elysia()
                     name: name,
                     icon_id: icon_id
                 });
-
+                await channel.save();
                 group?.channels.push(channel);
                 await group?.save();
                 return JSON.stringify(channel);
@@ -127,14 +128,12 @@ const app = new Elysia()
                     icon_id: t.Optional(t.String())
                 })
             })
-            .get("/:id/messages", async({ jwt, set, query, params: { id } }) => {
+            .get("/:id/messages", async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
                 const limit = Number(query.limit) < 100 ? Number(query.limit) : 100;
-                const channel = await Channel.findOne({ 'id.id': id }).populate({
-                    path: 'messages',
-                    options: {limit: limit, sort: {date: 'descending'}}
-                });
-                const group = await Group.findOne({ 'channels': id });
+                const channel = await Channel.findOne({ "id.id": id });
+                const group = await Group.findOne({ 'channels': channel?._id }); 
+                console.log("GROUP: ", group);
                 if (!group?.is_public) {
                     if (!profile) {
                         set.status = 401;
@@ -146,10 +145,47 @@ const app = new Elysia()
                         return 'Unauthorized';
                     }
                 }
+                await channel?.populate({
+                    path: 'messages',
+                    options: { limit: limit, sort: { date: 'descending' } }
+                });
+                console.log("CHANNEL: ", channel);
                 return channel?.messages;
             })
-            .post('/:id/send', async ({ jwt, set }) => {
-
+            .post('/:id/send', async ({ jwt, set, query, body, params: { id } }) => {
+                const profile = await jwt.verify(query.token)
+                if (!profile) {
+                    set.status = 401;
+                    return 'Unauthorized';
+                }
+                const channel = await Channel.findOne({"id.id": id});
+                if(!channel) {
+                    console.log("shits broken");
+                }
+                const amityId = new AmityId({ id: profile.id, server: process.env.SERVER_URL })
+                const message = new Message({
+                    date: body.date,
+                    author_id: amityId,
+                    encrypted: body.encrypted,
+                    content: body.content,
+                    contents: body.contents
+                });
+                await message.save();
+                channel?.messages.push(message);
+                await channel?.save();
+            }, {
+                body: t.Object({
+                    date: t.Date(),
+                    encrypted: t.Boolean(),
+                    content: t.Optional(t.String()),
+                    contents: t.Optional(t.Array(t.Object({
+                        for: t.Object({
+                            id: t.String(),
+                            server: t.String()
+                        }),
+                        content: t.String()
+                    })))
+                })
             })
     )
     .group('/group', (app) =>

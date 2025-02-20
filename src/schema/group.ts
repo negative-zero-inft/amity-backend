@@ -12,7 +12,7 @@ const groupSchema = new mongoose.Schema({
     owner_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     is_public: Boolean,
     has_channels: Boolean,
-    channels: [channelSchema]
+    channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }]
 });
 
 export type Group = mongoose.InferSchemaType<typeof groupSchema>;

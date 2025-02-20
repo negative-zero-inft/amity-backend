@@ -3,7 +3,7 @@ import { amityIdSchema } from './amityId';
 
 export const messageSchema = new mongoose.Schema({
     id: amityIdSchema,
-    author_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    author_id: amityIdSchema,
     date: Date,
     encrypted: Boolean,
     content: String, //for groups, etc. where the message isn't encrypted
