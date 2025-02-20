@@ -4,6 +4,7 @@ import { jwt } from '@elysiajs/jwt'
 import { randomID, randomChars } from '../utils';
 import { User } from '../schema/user';
 import { AmityId } from '../schema/amityId';
+import { AwaitingConnection } from '../schema/awaitingConnection';
 
 export const osu = new Elysia()
     .use(
@@ -23,14 +24,27 @@ export const osu = new Elysia()
         })
     )
     .group("/osu", (app) =>
-        app.get("/", async ({ oauth2, redirect }) => {
+        app.get("/", async ({ oauth2, redirect, jwt, query, set }) => {
             const url = oauth2.createURL("Osu", ["public"]);
-            url.searchParams.set("access_type", "offline");
-
+            if (query.token) {
+                const profile = await jwt.verify(query.token);
+                if (!profile) {
+                    set.status = 401;
+                    return "Unauthorized";
+                }
+                console.log("user set");
+                const connection = new AwaitingConnection({
+                    name: "osu",
+                    secret: url.searchParams.get("state"),
+                    user: profile._id
+                })
+                await connection.save();
+            }
             return redirect(url.href);
         })
-            .get("/callback", async ({ oauth2, jwt }) => {
+            .get("/callback", async ({ oauth2, jwt, query }) => {
                 const tokens = await oauth2.authorize("Osu");
+                console.log(query);
                 const accessToken = tokens.accessToken();
 
                 const response = await fetch("https://osu.ppy.sh/api/v2/me", {
@@ -42,14 +56,24 @@ export const osu = new Elysia()
                 console.log(osuUser);
 
                 const username = osuUser.username, picture = osuUser.avatar_url;
-                // const [userId] = await sql`SELECT id FROM connections WHERE identifier = ${username} AND name = 'osu'`;
-                const userId = await User.findOne({"connections.name": "osu", "connections.secret": username});
+                const connection = await AwaitingConnection.findOne({ name: "osu", secret: query.state });
+                if (connection) {
+                    const user = await User.findOne({ _id: connection.user });
+                    user?.connections.push({
+                        name: "osu",
+                        secret: username
+                    })
+                    await user?.save();
+                    await AwaitingConnection.deleteOne({ _id: connection._id });
+                    return await jwt.sign({ id: user?.id.id, _id: user?._id.toString() })
+                }
+                const userId = await User.findOne({ "connections.name": "osu", "connections.secret": username });
                 if (!userId) {
                     //create a user
                     const randomid = randomID();
                     const tag = username + randomChars(5);
 
-                    const amityId = new AmityId({id: randomid, server: process.env.SERVER_URL})
+                    const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
 
                     const user = new User({
                         id: amityId,
@@ -62,7 +86,7 @@ export const osu = new Elysia()
                         }]
                     });
                     await user.save();
-                    return await jwt.sign({ id: randomid });
+                    return await jwt.sign({ id: randomid, _id: user._id });
                 } else {
                     return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
                 }

@@ -4,6 +4,7 @@ import { jwt } from '@elysiajs/jwt'
 import { randomID } from '../utils';
 import { User } from '../schema/user';
 import { AmityId } from '../schema/amityId';
+import { AwaitingConnection } from '../schema/awaitingConnection';
 
 export const github = new Elysia()
     .use(
@@ -23,13 +24,27 @@ export const github = new Elysia()
         })
     )
     .group("/github", (app) =>
-        app.get("/", async ({ oauth2, redirect }) => {
+        app.get("/", async ({ oauth2, redirect, query, jwt, set }) => {
             const url = oauth2.createURL("GitHub", ["user:email"]);
+            if(query.token) {
+                const profile = await jwt.verify(query.token);
+                if(!profile) {
+                    set.status = 401;
+                    return "Unauthorized";
+                }
+                console.log("user set");
+                const connection = new AwaitingConnection({
+                    name: "github",
+                    secret: url.searchParams.get("state"),
+                    user: profile._id
+                })
+                await connection.save();
+            }
             url.searchParams.set("access_type", "offline");
 
             return redirect(url.href);
         })
-            .get("/callback", async ({ oauth2, jwt }) => {
+            .get("/callback", async ({ oauth2, jwt, query }) => {
                 const tokens = await oauth2.authorize("GitHub");
                 const accessToken = tokens.accessToken();
 
@@ -51,7 +66,18 @@ export const github = new Elysia()
                 const email = emails[0]["email"];
                 console.log(email)
                 const picture = data.avatar_url;
-                const userId = await User.findOne({"connections.name": "github", "connections.secret": email});
+                const connection = await AwaitingConnection.findOne({ name: "github", secret: query.state });
+                if (connection) {
+                    const user = await User.findOne({ _id: connection.user });
+                    user?.connections.push({
+                        name: "github",
+                        secret: email
+                    })
+                    await user?.save();
+                    await AwaitingConnection.deleteOne({ _id: connection._id });
+                    return await jwt.sign({ id: user?.id.id, _id: user?._id.toString() })
+                }
+                const userId = await User.findOne({ "connections.name": "github", "connections.secret": email });
                 if (!userId) {
                     //create a user
                     const randomid = randomID();
@@ -71,7 +97,7 @@ export const github = new Elysia()
                         }]
                     });
                     await user.save();
-                    return await jwt.sign({ id: randomid });
+                    return await jwt.sign({ id: randomid, _id: user._id });
                 } else return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
             })
     )
