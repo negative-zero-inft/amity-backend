@@ -159,9 +159,6 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const channel = await Channel.findOne({"id.id": id});
-                if(!channel) {
-                    console.log("shits broken");
-                }
                 const amityId = new AmityId({ id: profile.id, server: process.env.SERVER_URL })
                 const message = new Message({
                     date: body.date,
@@ -235,6 +232,10 @@ const app = new Elysia()
                         return 'Unauthorized';
                     }
                 }
+                await group?.populate({
+                    path: "channels",
+                    select: "-messages"
+                });
                 return JSON.stringify(group);
             })
     )
