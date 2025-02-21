@@ -5,6 +5,7 @@ import { randomID } from './utils';
 import { User } from './schema/user';
 import { AmityId } from './schema/amityId';
 import { Channel } from './schema/channel';
+import { Chat } from './schema/chat';
 
 export const dm = new Elysia()
     .use(
@@ -23,19 +24,18 @@ export const dm = new Elysia()
                 }
                 const randomid = randomID();
 
-                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
                 const currentUser = await User.findOne({_id: profile._id});
                 const foreignUser = await User.findOne({'id.id': user_id});
-                const channel = new Channel({
+                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+                const chat = new Chat({
                     id: amityId
                 });
-                await channel.save();
-                const dm = {type: "dm", amity_id: amityId};
-                currentUser?.chats.push(dm);
-                foreignUser?.chats.push(dm);
+                await chat.save();
+                currentUser?.chats.push(chat);
+                foreignUser?.chats.push(chat);
                 await currentUser?.save();
                 await foreignUser?.save();
-                return JSON.stringify(channel);
+                return JSON.stringify(chat);
         }, {
             body: t.Object({
                 user_id: t.String(), //amity id

@@ -1,6 +1,9 @@
 import { Elysia, t } from 'elysia'
 import { jwt } from '@elysiajs/jwt'
 import { User } from './schema/user';
+import { AmityId } from './schema/amityId';
+import { randomID } from './utils';
+import { ChatFolder } from './schema/chatFolder';
 
 export const user = new Elysia()
     .use(
@@ -28,7 +31,7 @@ export const user = new Elysia()
                             return 'Unauthorized';
                         }
                         const user = await User.findOne({ 'id.id': profile.id });
-                        delete user!.password;  
+                        delete user!.password;
 
                         return JSON.stringify(user);
                     })
@@ -38,7 +41,7 @@ export const user = new Elysia()
                             set.status = 401;
                             return 'Unauthorized';
                         }
-                        await User.findOneAndUpdate({"id.id": profile.id}, body);
+                        await User.findOneAndUpdate({ "id.id": profile.id }, body);
                     }, {
                         body: t.Object({
                             //this should update the user data with new stuff
@@ -48,14 +51,51 @@ export const user = new Elysia()
                             banner: t.String(),
                         })
                     })
-                    .get("/chatfolders", async ({ jwt, set, query}) => {
-                        const profile = await jwt.verify(query.token)
-                        if (!profile) {
-                            set.status = 401;
-                            return 'Unauthorized';
-                        }
-                        const user = await User.findOne({_id: profile._id});
-                        return JSON.stringify(user?.chat_folders);
-                    })
+                    .group("/chatfolders", (app) =>
+                        app.get("/", async ({ jwt, set, query }) => {
+                            const profile = await jwt.verify(query.token)
+                            if (!profile) {
+                                set.status = 401;
+                                return 'Unauthorized';
+                            }
+                            const user = await User.findOne({ _id: profile._id });
+                            return JSON.stringify(user?.chat_folders);
+                        })
+                            .post("/add", async ({ jwt, set, query, body: { icon, name } }) => {
+                                const profile = await jwt.verify(query.token)
+                                if (!profile) {
+                                    set.status = 401;
+                                    return 'Unauthorized';
+                                }
+                                const user = await User.findOne({ _id: profile._id });
+                                const chatFolder = new ChatFolder({
+                                    icon: icon,
+                                    name: name
+                                })
+                                user?.chat_folders.push(chatFolder);
+                                await user?.save();
+                                return JSON.stringify(chatFolder);
+                            }, {
+                                body: t.Object({
+                                    icon: t.String(),
+                                    name: t.String()
+                                })
+                            })
+                            .delete("/", async({jwt, set, query, body: {name}}) => {
+                                const profile = await jwt.verify(query.token)
+                                if (!profile) {
+                                    set.status = 401;
+                                    return 'Unauthorized';
+                                }
+                                const user = await User.findOne({_id: profile._id});
+                                user?.chat_folders.pull({name: name});
+                                await user?.save();
+                                return;
+                            }, {
+                                body: t.Object({
+                                    name: t.String()
+                                })
+                            })
+                    )
             )
     )

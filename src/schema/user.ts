@@ -1,10 +1,10 @@
 import * as mongoose from 'mongoose';
-import {Channel} from './channel'
 import { amityIdSchema } from './amityId';
+import { chatFolderSchema } from './chatFolder';
 
 const userSchema = new mongoose.Schema({
     id: amityIdSchema,
-    tag: String,
+    tag: {type: String, unique: true},
     name: String,
     description: String,
     avatar: String,
@@ -17,18 +17,8 @@ const userSchema = new mongoose.Schema({
         name: String,
         secret: String
     }],
-    chats: [{
-        type: String,
-        amity_id: amityIdSchema
-    }],
-    chat_folders: [{
-        icon: String,
-        name: String,
-        elements: [{
-            type: String,
-            amity_id: amityIdSchema
-        }]
-    }],
+    chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+    chat_folders: [chatFolderSchema],
     password: String
 });
 
