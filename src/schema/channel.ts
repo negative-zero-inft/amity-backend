@@ -5,8 +5,9 @@ export const channelSchema = new mongoose.Schema({
     id: amityIdSchema,
     type: Number,
     name: String,
+    pinned: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
-    icon_id: String
+    icon: String
 });
 
 export type Channel = mongoose.InferSchemaType<typeof channelSchema>;

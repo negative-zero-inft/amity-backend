@@ -12,6 +12,7 @@ import { Channel } from "./schema/channel";
 import { AmityId } from "./schema/amityId";
 import mongoose from "mongoose";
 import { Message } from "./schema/message";
+import { dm } from "./dm";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
@@ -26,6 +27,7 @@ const app = new Elysia()
     )
     .get("/", () => "loqa")
     .use(user)
+    .use(dm)
     .group("/auth", (app) =>
         app
             .use(google)

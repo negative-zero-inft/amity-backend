@@ -15,7 +15,6 @@ export const user = new Elysia()
             .get('/:id/info', async ({ jwt, set, params: { id } }) => {
                 const user = await User.findOne({ 'id.id': id });
                 console.log(user);
-                delete user!.email;
                 delete user!.password;
 
                 return user;
@@ -47,8 +46,16 @@ export const user = new Elysia()
                             description: t.String(),
                             avatar: t.String(),
                             banner: t.String(),
-                            email: t.String()
                         })
+                    })
+                    .get("/chatfolders", async ({ jwt, set, query}) => {
+                        const profile = await jwt.verify(query.token)
+                        if (!profile) {
+                            set.status = 401;
+                            return 'Unauthorized';
+                        }
+                        const user = await User.findOne({_id: profile._id});
+                        return JSON.stringify(user?.chat_folders);
                     })
             )
     )
