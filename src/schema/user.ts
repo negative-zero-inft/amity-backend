@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema({
     }],
     chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
     chat_folders: [chatFolderSchema],
-    password: String
+    password: String,
+    cdn: String
 });
 
 export type User = mongoose.InferSchemaType<typeof userSchema>;

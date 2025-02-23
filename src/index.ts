@@ -35,7 +35,7 @@ const app = new Elysia()
             .use(discord)
             .use(osu)
     )
-    .post('/register', async ({ set, body: { password, tag, name } }) => {
+    .post('/register', async ({ set, body: { password, tag, name, cdn } }) => {
         const randomid = randomID();
         // await sql`INSERT INTO amity_id (id, server) VALUES (${randomid}, ${server})`;
         // await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
@@ -48,7 +48,8 @@ const app = new Elysia()
             tag: tag,
             name: name,
             avatar: "https://media.discordapp.net/attachments/1339688907679465472/1341490498824835163/appicon.png?ex=67b62fe2&is=67b4de62&hm=4401408bdeb715575d0df621070cba094995c3c40ddf1b98bf0cecec1c656588&=&format=webp&quality=lossless&width=672&height=672",
-            password: await Bun.password.hash(password)
+            password: await Bun.password.hash(password),
+            cdn: cdn
         });
         await user.save();
     }, {
