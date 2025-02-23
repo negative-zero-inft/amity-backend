@@ -19,7 +19,7 @@ console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
 
 const app = new Elysia()
-    .use(cors)
+    .use(cors({}))
     .use(
         jwt({
             name: 'jwt',
