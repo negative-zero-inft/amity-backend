@@ -26,7 +26,11 @@ export const dm = new Elysia()
                 const randomid = randomID();
 
                 const currentUser = await User.findOne({_id: profile._id});
-                const foreignUser = await User.findOne({'id.id': user_id});
+                const foreignUser = await User.findOne({'id.id': user_id.id});
+                if(!foreignUser) {
+                    //the user isn't registered on our server
+                    
+                }
                 const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
                 const chat = new Chat({
                     id: amityId
@@ -39,7 +43,10 @@ export const dm = new Elysia()
                 return JSON.stringify(chat);
         }, {
             body: t.Object({
-                user_id: t.String(), //amity id
+                user_id: t.Object({ //amity_id
+                    id: t.String(),
+                    server: t.String()
+                }), 
             })
         })
         .post("/:id/send", async ({ jwt, set, query, body, params: {id}}) => {
