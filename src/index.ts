@@ -57,7 +57,7 @@ const app = new Elysia()
             tag: t.String(),
             password: t.String(),
             name: t.String(),
-            avatar: t.String()
+            cdn: t.String()
         })
     })
     .post('/signin', async ({ jwt, set, body: { tag, password } }) => {
