@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 import { amityIdSchema } from './amityId';
 
 export const chatSchema = new mongoose.Schema({
+    index: Number,
     type: String,
     id: amityIdSchema,
     members: [amityIdSchema],
