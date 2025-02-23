@@ -13,11 +13,13 @@ import { AmityId } from "./schema/amityId";
 import mongoose from "mongoose";
 import { Message } from "./schema/message";
 import { dm } from "./dm";
+import { cors } from "@elysiajs/cors";
 
 console.log(process.env.POSTGRES_URL)
 const server = process.env.SERVER_URL ?? "";
 
 const app = new Elysia()
+    .use(cors)
     .use(
         jwt({
             name: 'jwt',
