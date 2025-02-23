@@ -42,3 +42,6 @@ package-lock.json
 **/*.bun
 
 .env
+
+# bun
+bun.lockb
