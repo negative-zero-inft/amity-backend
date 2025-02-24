@@ -249,10 +249,10 @@ const app = new Elysia()
     )
     .listen({
         port: 3000,
-        tls: {
+        tls: !process.argv.includes("dev") ? {
             key: Bun.file(process.env.KEY_FILE ?? "./key.pem"),
             cert: Bun.file(process.env.CERT_FILE ?? "./cert.pem")
-        },
+        } : {},
         hostname: "0.0.0.0"
     });
 
