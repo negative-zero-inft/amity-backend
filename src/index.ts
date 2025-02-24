@@ -50,7 +50,7 @@ const app = new Elysia()
             tag: tag,
             name: name,
             banner: "https://cdn.discordapp.com/attachments/1093616425198956655/1343342051143581777/Jump-1080.png?ex=67bcec47&is=67bb9ac7&hm=e234e6c2014b98d6cfb570362a307f333b81dea9eb366d6543b48606f9d664a1&",
-            avatar: "https://media.discordapp.net/attachments/1339688907679465472/1341490498824835163/appicon.png?ex=67b62fe2&is=67b4de62&hm=4401408bdeb715575d0df621070cba094995c3c40ddf1b98bf0cecec1c656588&=&format=webp&quality=lossless&width=672&height=672",
+            avatar: "skibidi.pneumonoultramicroscopicsilicovolcanoconiosis.site",
             password: await Bun.password.hash(password),
             cdn: cdn
         });
