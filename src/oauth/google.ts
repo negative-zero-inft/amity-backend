@@ -12,7 +12,7 @@ export const google = new Elysia()
             Google: [
                 process.env.GOOGLE_ID ?? "",
                 process.env.GOOGLE_SECRET ?? "",
-                `http://${process.env.SERVER_URL}/auth/google/callback`
+                `https://${process.env.SERVER_URL}:3000/auth/google/callback`
             ]
         })
     )
