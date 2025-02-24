@@ -15,14 +15,14 @@ import { Message } from "./schema/message";
 import { dm } from "./dm";
 import { cors } from "@elysiajs/cors";
 
-const server = process.env.SERVER_URL ?? "";
+const server = Bun.env.SERVER_URL ?? "";
 
 const app = new Elysia()
     .use(cors({}))
     .use(
         jwt({
             name: 'jwt',
-            secret: process.env.JWT_SECRET ?? "asd",
+            secret: Bun.env.JWT_SECRET ?? "asd",
             exp: '1d'
         })
     )
@@ -42,7 +42,7 @@ const app = new Elysia()
         // await sql`INSERT INTO users (id, tag, name, password, avatar) VALUES 
         // (${randomid}, ${tag}, ${name}, ${await Bun.password.hash(password)}, ${avatar})`;
 
-        const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+        const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
 
         const user = new User({
             id: amityId,
@@ -113,7 +113,7 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
 
-                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+                const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
                 const channel = new Channel({
                     id: amityId,
                     type: type,
@@ -164,7 +164,7 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const channel = await Channel.findOne({"id.id": id});
-                const amityId = new AmityId({ id: profile.id, server: process.env.SERVER_URL })
+                const amityId = new AmityId({ id: profile.id, server: Bun.env.SERVER_URL })
                 const message = new Message({
                     date: body.date,
                     author_id: amityId,
@@ -199,7 +199,7 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const randomid = randomID();
-                const amityId = new AmityId({ id: randomid, server: process.env.SERVER_URL })
+                const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
 
                 const group = new Group({
                     id: amityId,
@@ -249,15 +249,15 @@ const app = new Elysia()
     )
     .listen({
         port: 3000,
-        tls: !process.argv.includes("dev") ? {
-            key: Bun.file(process.env.KEY_FILE ?? "./key.pem"),
-            cert: Bun.file(process.env.CERT_FILE ?? "./cert.pem")
+        tls: !Bun.env.DEV ? {
+            key: Bun.file(Bun.env.KEY_FILE ?? "./key.pem"),
+            cert: Bun.file(Bun.env.CERT_FILE ?? "./cert.pem")
         } : {},
         hostname: "0.0.0.0"
     });
 
 
-mongoose.connect(process.env.MONGODB_URL ?? "");
+mongoose.connect(Bun.env.MONGODB_URL ?? "");
 
 console.log(
     `amity-backend is running at ${app.server?.hostname}:${app.server?.port}`
