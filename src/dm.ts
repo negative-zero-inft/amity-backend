@@ -89,22 +89,6 @@ export const dm = new Elysia()
                 return 'Unauthorized';
             }
             const user = await User.findOne({_id: profile._id});
-            let chats: Array<Object> = [];
-            if(!user?.chats) return [];
-            for(const chat of user?.chats) {
-                switch(chat.chat_type) {
-                    case "dm":
-                        const dm = await Chat.findOne({'id.id': chat.id.id});
-                        chats.push({chat_type: "dm", chat: dm});
-                        break;
-                    case "group":
-                        const group = await Group.findOne({'id.id': chat.id.id});
-                        chats.push({chat_type: "dm", chat: group});
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return JSON.stringify(chats);
+            return JSON.stringify(user?.chats);
         })
     )
