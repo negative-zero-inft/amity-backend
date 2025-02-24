@@ -12,7 +12,7 @@ export const discord = new Elysia()
             Discord: [
                 process.env.DISCORD_ID ?? "",
                 process.env.DISCORD_SECRET ?? "",
-                `http://${process.env.SERVER_URL}:3000/auth/discord/callback`
+                `https://${process.env.SERVER_URL}:3000/auth/discord/callback`
             ]
         })
     )
