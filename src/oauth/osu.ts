@@ -12,7 +12,7 @@ export const osu = new Elysia()
             Osu: [
                 process.env.OSU_ID ?? "",
                 process.env.OSU_SECRET ?? "",
-                `http://${process.env.SERVER_URL}/auth/osu/callback`
+                `http://${process.env.SERVER_URL}:3000/auth/osu/callback`
             ]
         })
     )

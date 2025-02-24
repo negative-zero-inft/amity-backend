@@ -12,7 +12,7 @@ export const github = new Elysia()
             GitHub: [
                 process.env.GITHUB_ID ?? "",
                 process.env.GITHUB_SECRET ?? "",
-                `http://${process.env.SERVER_URL}/auth/github/callback`
+                `http://${process.env.SERVER_URL}:3000/auth/github/callback`
             ]
         })
     )
