@@ -251,8 +251,8 @@ const app = new Elysia()
     .listen({
         port: 3000,
         tls: {
-            key: Bun.file("./key.pem"),
-            cert: Bun.file("./cert.pem")
+            key: Bun.file(process.env.KEY_FILE ?? "./key.pem"),
+            cert: Bun.file(process.env.CERT_FILE ?? "./cert.pem")
         },
         hostname: "0.0.0.0"
     });
