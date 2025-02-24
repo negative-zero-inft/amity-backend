@@ -210,9 +210,12 @@ const app = new Elysia()
                     is_public: is_public,
                     has_channels: has_channels,
                     members: [profile._id],
-                    owner_id: profile._id
+                    owner_id: profile._id // i feel like these should be replaced with an amity id, but we'll see
                 })
                 await group.save();
+                const owner = await User.findOne({_id: profile._id});
+                owner?.chats.push({chat_type: "group", id: amityId});
+                await owner?.save();
                 return JSON.stringify(group);
             }, {
                 body: t.Object({

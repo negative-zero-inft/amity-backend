@@ -7,6 +7,7 @@ import { AmityId } from './schema/amityId';
 import { Channel } from './schema/channel';
 import { Chat } from './schema/chat';
 import { Message } from './schema/message';
+import { Group } from './schema/group';
 
 export const dm = new Elysia()
     .use(
@@ -36,10 +37,10 @@ export const dm = new Elysia()
                     id: amityId
                 });
                 await chat.save();
-                currentUser?.chats.push(chat);
-                foreignUser?.chats.push(chat);
+                currentUser?.chats.push({chat_type: "dm", id: amityId});
+                // foreignUser?.chats.push(chat);
                 await currentUser?.save();
-                await foreignUser?.save();
+                // await foreignUser?.save();
                 return JSON.stringify(chat);
         }, {
             body: t.Object({
@@ -88,6 +89,22 @@ export const dm = new Elysia()
                 return 'Unauthorized';
             }
             const user = await User.findOne({_id: profile._id});
-            return JSON.stringify(user?.chats);
+            let chats: Array<Object> = [];
+            if(!user?.chats) return [];
+            for(const chat of user?.chats) {
+                switch(chat.chat_type) {
+                    case "dm":
+                        const dm = await Chat.findOne({'id.id': chat.id.id});
+                        chats.push({chat_type: "dm", chat: dm});
+                        break;
+                    case "group":
+                        const group = await Group.findOne({'id.id': chat.id.id});
+                        chats.push({chat_type: "dm", chat: group});
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return JSON.stringify(chats);
         })
     )

@@ -3,7 +3,6 @@ import { amityIdSchema } from './amityId';
 
 export const chatSchema = new mongoose.Schema({
     index: Number,
-    type: String,
     id: amityIdSchema,
     members: [amityIdSchema],
     pinned: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],

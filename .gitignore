@@ -45,3 +45,4 @@ package-lock.json
 
 # bun
 bun.lockb
+bun.lock

@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema({
         name: String,
         secret: String
     }],
-    chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+    chats: [{
+        chat_type: String, //group / chat / anything else
+        id: amityIdSchema
+    }],
     chat_folders: [chatFolderSchema],
     password: String,
     cdn: String
