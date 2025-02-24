@@ -78,7 +78,7 @@ export const user = new Elysia()
                             }, {
                                 body: t.Object({
                                     icon: t.String(),
-                                    name: t.String()
+                                    name: t.Optional(t.String())
                                 })
                             })
                             .delete("/", async({jwt, set, query, body: {name}}) => {
