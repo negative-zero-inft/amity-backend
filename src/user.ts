@@ -67,6 +67,10 @@ export const user = new Elysia()
                                     set.status = 401;
                                     return 'Unauthorized';
                                 }
+                                if(!icon && !name){
+                                    set.status = 400;
+                                    return "You must include either the name or the icon"
+                                }
                                 const user = await User.findOne({ _id: profile._id });
                                 const chatFolder = new ChatFolder({
                                     icon: icon,
@@ -77,7 +81,7 @@ export const user = new Elysia()
                                 return JSON.stringify(chatFolder);
                             }, {
                                 body: t.Object({
-                                    icon: t.String(),
+                                    icon: t.Optional(t.String()),
                                     name: t.Optional(t.String())
                                 })
                             })
