@@ -88,10 +88,10 @@ export const google = new Elysia()
                     });
                     await user.save();
                     const token = await jwt.sign({ id: randomid, _id: user._id.toString() });
-                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                    return redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
                 } else {
                     const token = await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
-                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                    return redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
                 }
             })
     )
