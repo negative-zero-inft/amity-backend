@@ -46,7 +46,7 @@ export const google = new Elysia()
 
             return redirect(url.href);
         })
-            .get("/callback", async ({ oauth2, jwt, query }) => {
+            .get("/callback", async ({ oauth2, jwt, query, redirect }) => {
                 const tokens = await oauth2.authorize("Google");
                 const accessToken = tokens.accessToken();
                 const response = await fetch("https://www.googleapis.com/oauth2/v1/userinfo", {
@@ -87,7 +87,11 @@ export const google = new Elysia()
                         }]
                     });
                     await user.save();
-                    return await jwt.sign({ id: randomid, _id: user._id });
-                } else return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    const token = await jwt.sign({ id: randomid, _id: user._id.toString() });
+                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                } else {
+                    const token = await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                }
             })
     )

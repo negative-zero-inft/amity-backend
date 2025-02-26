@@ -44,7 +44,7 @@ export const github = new Elysia()
 
             return redirect(url.href);
         })
-            .get("/callback", async ({ oauth2, jwt, query }) => {
+            .get("/callback", async ({ oauth2, jwt, query, redirect }) => {
                 const tokens = await oauth2.authorize("GitHub");
                 const accessToken = tokens.accessToken();
 
@@ -97,7 +97,11 @@ export const github = new Elysia()
                         }]
                     });
                     await user.save();
-                    return await jwt.sign({ id: randomid, _id: user._id });
-                } else return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    const token = await jwt.sign({ id: randomid, _id: user._id.toString() });
+                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                } else {
+                    const token = await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    redirect(`${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
+                }
             })
     )
