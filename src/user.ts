@@ -96,18 +96,16 @@ export const user = new Elysia()
                                 for(let i = 0; i < user?.chat_folders.length; i++) {
                                     const folder = user?.chat_folders[i];
                                     if(folder._id.toString() == body._id) {
-                                        folder.icon = body.icon;
-                                        folder.name = body.name;
-                                        if(body.elements) 
-                                            folder.elements = body.elements;
-
+                                        if(body.icon) folder.icon = body.icon;
+                                        if(body.name) folder.name = body.name;
+                                        if(body.elements) folder.elements = body.elements;
                                     }
                                 }
                             }, {
                                 body: t.Object({
                                     _id: t.String(),
-                                    icon: t.String(),
-                                    name: t.String(),
+                                    icon: t.Optional(t.String()),
+                                    name: t.Optional(t.String()),
                                     elements: t.Optional(t.Array(t.Object({
                                         chat_type: t.String(),
                                         amity_id: t.Object({
