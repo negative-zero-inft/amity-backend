@@ -3,9 +3,9 @@ import { amityIdSchema } from './amityId';
 
 export const chatFolderSchema = new mongoose.Schema({
     icon: String,
-    name: {type: String, unique: true},
+    name: String,
     elements: [{
-        type: String,
+        chat_type: String,
         amity_id: amityIdSchema
     }]
 });

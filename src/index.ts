@@ -247,14 +247,7 @@ const app = new Elysia()
                 return JSON.stringify(group);
             })
     )
-    .listen({
-        port: 3000,
-        tls: !Bun.env.DEV ? {
-            key: Bun.file(Bun.env.KEY_FILE ?? "./key.pem"),
-            cert: Bun.file(Bun.env.CERT_FILE ?? "./cert.pem")
-        } : {},
-        hostname: "0.0.0.0"
-    });
+    .listen(Bun.env.PORT ?? 3000);
 
 
 mongoose.connect(Bun.env.MONGODB_URL ?? "");
