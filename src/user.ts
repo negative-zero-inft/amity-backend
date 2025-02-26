@@ -101,6 +101,7 @@ export const user = new Elysia()
                                         if(body.elements) folder.elements = body.elements;
                                     }
                                 }
+                                await(user?.save)
                             }, {
                                 body: t.Object({
                                     _id: t.String(),
