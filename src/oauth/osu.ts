@@ -42,7 +42,7 @@ export const osu = new Elysia()
             }
             return redirect(url.href);
         })
-            .get("/callback", async ({ oauth2, jwt, query }) => {
+            .get("/callback", async ({ oauth2, jwt, query, redirect }) => {
                 const tokens = await oauth2.authorize("Osu");
                 console.log(query);
                 const accessToken = tokens.accessToken();
@@ -86,9 +86,11 @@ export const osu = new Elysia()
                         }]
                     });
                     await user.save();
-                    return await jwt.sign({ id: randomid, _id: user._id });
+                    const token = await jwt.sign({ id: randomid, _id: user._id.toString() });
+                    return redirect(`https://${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
                 } else {
-                    return await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    const token = await jwt.sign({ id: userId.id.id, _id: userId._id.toString() })
+                    return redirect(`https://${Bun.env.SERVER_URL}/oauth?token=${token}&server=${Bun.env.SERVER_URL}`)
                 }
             })
     )

@@ -85,19 +85,52 @@ export const user = new Elysia()
                                     name: t.Optional(t.String())
                                 })
                             })
-                            .delete("/", async({jwt, set, query, body: {name}}) => {
+                            .put("/", async({jwt, set, query, error, body}) => {
                                 const profile = await jwt.verify(query.token)
                                 if (!profile) {
                                     set.status = 401;
                                     return 'Unauthorized';
                                 }
                                 const user = await User.findOne({_id: profile._id});
-                                user?.chat_folders.pull({name: name});
+                                if(!user?.chat_folders) return error(500);
+                                for(let i = 0; i < user?.chat_folders.length; i++) {
+                                    const folder = user?.chat_folders[i];
+                                    if(folder._id.toString() == body._id) {
+                                        folder.icon = body.icon;
+                                        folder.name = body.name;
+                                        if(body.elements) 
+                                            folder.elements = body.elements;
+
+                                    }
+                                }
+                                await user?.save();
+                            }, {
+                                body: t.Object({
+                                    _id: t.String(),
+                                    icon: t.String(),
+                                    name: t.String(),
+                                    elements: t.Optional(t.Array(t.Object({
+                                        chat_type: t.String(),
+                                        amity_id: t.Object({
+                                            id: t.String(),
+                                            server: t.String()
+                                        })
+                                    })))
+                                })
+                            })
+                            .delete("/", async({jwt, set, query, body: {_id}}) => {
+                                const profile = await jwt.verify(query.token)
+                                if (!profile) {
+                                    set.status = 401;
+                                    return 'Unauthorized';
+                                }
+                                const user = await User.findOne({_id: profile._id});
+                                user?.chat_folders.pull({_id: _id});
                                 await user?.save();
                                 return;
                             }, {
                                 body: t.Object({
-                                    name: t.String()
+                                    _id: t.String()
                                 })
                             })
                     )
