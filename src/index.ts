@@ -228,27 +228,14 @@ const app = new Elysia()
             .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
                 const group = await Group.findOne({ 'id.id': id });
-                try{
-                    if (!group?.is_public) {
-                        if (!profile) {
-                            set.status = 401;
-                            return 'Unauthorized';
-                        }
-                        const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
-                        if (!isInGroup) {
-                            set.status = 401;
-                            return 'Unauthorized';
-                        }
-                    }
-                    await group?.populate({
-                        path: "channels",
-                        select: "-messages"
-                    });
-                    return JSON.stringify(group);
-                }catch(e){
-                    set.status = 500;
-                    return e
+                if (!group?.is_public) {
+                    console.log("here uwu")
                 }
+                await group?.populate({
+                    path: "channels",
+                    select: "-messages"
+                });
+                return JSON.stringify(group);
             })
     )
     .listen(Bun.env.PORT ?? 3000);
