@@ -74,7 +74,8 @@ export const user = new Elysia()
                                 const user = await User.findOne({ _id: profile._id });
                                 const chatFolder = new ChatFolder({
                                     icon: icon,
-                                    name: name
+                                    name: name,
+                                    elements: elements
                                 })
                                 user?.chat_folders.push(chatFolder);
                                 await user?.save();
@@ -99,9 +100,7 @@ export const user = new Elysia()
                                     if(folder._id.toString() == body._id) {
                                         folder.icon = body.icon;
                                         folder.name = body.name;
-                                        if(body.elements) 
-                                            folder.elements = body.elements;
-
+                                        if(body.elements) folder.elements = body.elements;
                                     }
                                 }
                                 await user?.save();
