@@ -230,10 +230,11 @@ const app = new Elysia()
                 const group = await Group.findOne({ 'id.id': id });
                 if (!group?.is_public) {
                     if (!profile) {
-                        console.log("here uwu")
+                        set.status = 401;
+                        return 'Unauthorized';
                     }
-                    const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
-                    if (!isInGroup) {
+                    
+                    if (group?.members.findIndex(e => e._id as any == profile._id) == -1) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
