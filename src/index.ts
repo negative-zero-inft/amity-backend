@@ -48,8 +48,8 @@ const app = new Elysia()
             id: amityId,
             tag: tag,
             name: name,
-            banner: "https://cdn.discordapp.com/attachments/1093616425198956655/1343342051143581777/Jump-1080.png?ex=67bcec47&is=67bb9ac7&hm=e234e6c2014b98d6cfb570362a307f333b81dea9eb366d6543b48606f9d664a1&",
-            avatar: "https://skibidi.pneumonoultramicroscopicsilicovolcanoconiosis.site",
+            banner: "Jump.png",
+            avatar: "Dobby.png",
             password: await Bun.password.hash(password),
             cdn: cdn
         });
