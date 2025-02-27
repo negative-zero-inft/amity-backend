@@ -229,7 +229,14 @@ const app = new Elysia()
                 const profile = await jwt.verify(query.token)
                 const group = await Group.findOne({ 'id.id': id });
                 if (!group?.is_public) {
-                    console.log("here uwu")
+                    if (!profile) {
+                        console.log("here uwu")
+                    }
+                    const isInGroup = await Group.findOne({ members: profile.id, 'id.id': id });
+                    if (!isInGroup) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
                 }
                 await group?.populate({
                     path: "channels",
