@@ -110,6 +110,7 @@ export const user = new Elysia()
                                     icon: t.String(),
                                     name: t.String(),
                                     elements: t.Optional(t.Array(t.Object({
+                                        _id: t.String(),
                                         chat_type: t.String(),
                                         amity_id: t.Object({
                                             id: t.String(),
