@@ -192,8 +192,8 @@ const app = new Elysia()
     )
     .group('/group', (app) =>
         app
-            .post('/create', async ({ jwt, set, body: { token, name, icon, description, is_public, has_channels } }) => {
-                const profile = await jwt.verify(token)
+            .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels } }) => {
+                const profile = await jwt.verify(query.token)
                 if (!profile) {
                     set.status = 401;
                     return 'Unauthorized';
@@ -218,7 +218,6 @@ const app = new Elysia()
                 return JSON.stringify(group);
             }, {
                 body: t.Object({
-                    token: t.String(),
                     name: t.String(),
                     icon: t.Optional(t.String()),
                     description: t.Optional(t.String()),
