@@ -193,7 +193,6 @@ const app = new Elysia()
     .group('/group', (app) =>
         app
             .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels } }) => {
-                console.log(body)
                 const profile = await jwt.verify(query.token)
                 if (!profile) {
                     set.status = 401;
