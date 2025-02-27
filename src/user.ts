@@ -82,7 +82,8 @@ export const user = new Elysia()
                             }, {
                                 body: t.Object({
                                     icon: t.Optional(t.String()),
-                                    name: t.Optional(t.String())
+                                    name: t.Optional(t.String()),
+                                    elements: t.Optional(t.Any()) //TODO: ADD CHECKING FOR WHETHER IT'S ACTUALLY THE CHATS ASIDUHASDUIJ
                                 })
                             })
                             .put("/", async({jwt, set, query, error, body}) => {
