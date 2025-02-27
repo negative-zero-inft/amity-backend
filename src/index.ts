@@ -204,8 +204,8 @@ const app = new Elysia()
                 const group = new Group({
                     id: amityId,
                     name: name,
-                    icon: icon,
-                    description: description,
+                    icon: icon || "https://nrd.neg-zero.com/Dobby.png",
+                    description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
                     members: [profile._id],
