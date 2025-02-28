@@ -209,8 +209,8 @@ const app = new Elysia()
                     description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [profile.id],
-                    owner_id: profile.id // done
+                    members: [profile],
+                    owner_id: profile // done
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
