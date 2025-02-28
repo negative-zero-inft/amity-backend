@@ -194,11 +194,12 @@ const app = new Elysia()
         app
             .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels } }) => {
                 const profile = await jwt.verify(query.token)
-                console.log("PROFILE: ", profile);
                 if (!profile) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
+                const user = await User.findOne({_id: profile._id})
+                console.log("PROFILE: ", profile);
                 const randomid = randomID();
                 const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
 
@@ -209,8 +210,8 @@ const app = new Elysia()
                     description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [profile],
-                    owner_id: profile // done
+                    members: [user.id],
+                    owner_id: user.id // done
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
