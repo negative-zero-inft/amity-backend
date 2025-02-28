@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
         secret: String
     }],
     chats: [{
-        chat_type: String, //group / chat / anything else
+        type: String, //group / chat / anything else
         id: amityIdSchema
     }],
     chat_folders: [chatFolderSchema],
