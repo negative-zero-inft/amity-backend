@@ -63,7 +63,6 @@ export const user = new Elysia()
                         })
                             .post("/add", async ({ jwt, set, query, body: { icon, name, elements } }) => {
                                 try{
-                                    console.log(elements)
                                     const profile = await jwt.verify(query.token)
                                     if (!profile) {
                                         set.status = 401;
@@ -83,7 +82,9 @@ export const user = new Elysia()
                                     await user?.save();
                                     return JSON.stringify(chatFolder);
                                 }catch(e){
+                                    set.status = 500;
                                     console.log(e);
+                                    return e;
                                 }
                             }, {
                                 body: t.Object({
