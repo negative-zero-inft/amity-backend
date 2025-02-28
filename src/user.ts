@@ -77,7 +77,7 @@ export const user = new Elysia()
                                     const chatFolder = new ChatFolder({
                                         icon: icon,
                                         name: name,
-                                        elements: elements?.map((element) => element)
+                                        elements: elements
                                     })
                                     user?.chat_folders.push(chatFolder);
                                     await user?.save();

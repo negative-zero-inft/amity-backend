@@ -6,7 +6,7 @@ export const chatFolderSchema = new mongoose.Schema({
     name: String,
     elements: [{
         chat_type: String,
-        amity_id: amityIdSchema
+        id: amityIdSchema
     }]
 });
 
