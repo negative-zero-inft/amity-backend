@@ -63,7 +63,7 @@ export const user = new Elysia()
                         })
                             .post("/add", async ({ jwt, set, query, body: { icon, name, elements } }) => {
                                 try{
-                                    
+                                    console.log(elements)
                                     const profile = await jwt.verify(query.token)
                                     if (!profile) {
                                         set.status = 401;
