@@ -192,9 +192,9 @@ const app = new Elysia()
     )
     .group('/group', (app) =>
         app
-            // !CHANGE MEMBER LIST FROM _id TO AMITY_ID ASAP
             .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels } }) => {
                 const profile = await jwt.verify(query.token)
+                console.log("PROFILE: ", profile);
                 if (!profile) {
                     set.status = 401;
                     return 'Unauthorized';
