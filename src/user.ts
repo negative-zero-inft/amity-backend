@@ -119,13 +119,14 @@ export const user = new Elysia()
                                     }
                                     await user?.save();
                                 }catch(e){
-                                    console.log(e);
+                                    set.status = 500;
+                                    return e;
                                 }
                             }, {
                                 body: t.Object({
                                     _id: t.String(),
-                                    icon: t.String(),
-                                    name: t.String(),
+                                    icon: t.Optional(t.String()),
+                                    name: t.Optional(t.String()),
                                     elements: t.Optional(t.Any())
                                 })
                             })
