@@ -26,7 +26,7 @@ const app = new Elysia()
             exp: '1d'
         })
     )
-    .get("/", () => "loqa")
+    .get("/", () => "amity connected")
     .use(user)
     .use(dm)
     .group("/auth", (app) =>
