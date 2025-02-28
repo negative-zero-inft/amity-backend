@@ -72,6 +72,7 @@ export const user = new Elysia()
                                     return "You must include either the name or the icon"
                                 }
                                 const user = await User.findOne({ _id: profile._id });
+                                console.log(elements)
                                 const chatFolder = new ChatFolder({
                                     icon: icon,
                                     name: name,
