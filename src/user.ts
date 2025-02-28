@@ -100,7 +100,11 @@ export const user = new Elysia()
                                     if(folder._id.toString() == body._id) {
                                         folder.icon = body.icon;
                                         folder.name = body.name;
-                                        if(body.elements) folder.elements = body.elements;
+                                        if(body.elements) {
+                                            for(const folder of body.elements) {
+                                                folder.elements.push(folder);
+                                            }
+                                        }
                                     }
                                 }
                                 await user?.save();
