@@ -73,13 +73,11 @@ export const user = new Elysia()
                                         return "You must include either the name or the icon"
                                     }
                                     const user = await User.findOne({ _id: profile._id });
-                                    const randomid = randomID();
-                                    const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
+                                    console.log(elements)
                                     const chatFolder = new ChatFolder({
                                         icon: icon,
                                         name: name,
-                                        elements: elements,
-                                        amity_id: amityId
+                                        elements: elements
                                     })
                                     user?.chat_folders.push(chatFolder);
                                     await user?.save();
