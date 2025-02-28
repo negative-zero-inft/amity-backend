@@ -95,7 +95,7 @@ export const user = new Elysia()
                                             id: t.String(),
                                             server: t.String()
                                         }),
-                                        type: t.String()
+                                        chat_type: t.String()
                                     })))
                                 })
                             })
@@ -130,7 +130,7 @@ export const user = new Elysia()
                                             id: t.String(),
                                             server: t.String()
                                         }),
-                                        type: t.String()
+                                        chat_type: t.String()
                                     })))
                                 })
                             })
