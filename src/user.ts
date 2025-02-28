@@ -88,22 +88,26 @@ export const user = new Elysia()
                                 })
                             })
                             .put("/", async({jwt, set, query, error, body}) => {
-                                const profile = await jwt.verify(query.token)
-                                if (!profile) {
-                                    set.status = 401;
-                                    return 'Unauthorized';
-                                }
-                                const user = await User.findOne({_id: profile._id});
-                                if(!user?.chat_folders) return error(500);
-                                for(let i = 0; i < user?.chat_folders.length; i++) {
-                                    const folder = user?.chat_folders[i];
-                                    if(folder._id.toString() == body._id) {
-                                        folder.icon = body.icon;
-                                        folder.name = body.name;
-                                        if(body.elements) folder.elements = body.elements;
+                                try{
+                                        const profile = await jwt.verify(query.token)
+                                    if (!profile) {
+                                        set.status = 401;
+                                        return 'Unauthorized';
                                     }
+                                    const user = await User.findOne({_id: profile._id});
+                                    if(!user?.chat_folders) return error(500);
+                                    for(let i = 0; i < user?.chat_folders.length; i++) {
+                                        const folder = user?.chat_folders[i];
+                                        if(folder._id.toString() == body._id) {
+                                            folder.icon = body.icon;
+                                            folder.name = body.name;
+                                            if(body.elements) folder.elements = body.elements;
+                                        }
+                                    }
+                                    await user?.save();
+                                }catch(e){
+                                    console.log(e);
                                 }
-                                await user?.save();
                             }, {
                                 body: t.Object({
                                     _id: t.String(),
