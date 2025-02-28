@@ -199,6 +199,10 @@ const app = new Elysia()
                     return 'Unauthorized';
                 }
                 const user = await User.findOne({_id: profile._id})
+                if(!user) {
+                    set.status = 401;
+                    return 'Unauthorized';
+                }
                 console.log("PROFILE: ", profile);
                 const randomid = randomID();
                 const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
