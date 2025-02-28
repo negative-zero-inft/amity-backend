@@ -62,24 +62,29 @@ export const user = new Elysia()
                             return JSON.stringify(user?.chat_folders);
                         })
                             .post("/add", async ({ jwt, set, query, body: { icon, name, elements } }) => {
-                                const profile = await jwt.verify(query.token)
-                                if (!profile) {
-                                    set.status = 401;
-                                    return 'Unauthorized';
+                                try{
+                                    
+                                    const profile = await jwt.verify(query.token)
+                                    if (!profile) {
+                                        set.status = 401;
+                                        return 'Unauthorized';
+                                    }
+                                    if(!icon && !name){
+                                        set.status = 400;
+                                        return "You must include either the name or the icon"
+                                    }
+                                    const user = await User.findOne({ _id: profile._id });
+                                    const chatFolder = new ChatFolder({
+                                        icon: icon,
+                                        name: name,
+                                        elements: elements
+                                    })
+                                    user?.chat_folders.push(chatFolder);
+                                    await user?.save();
+                                    return JSON.stringify(chatFolder);
+                                }catch(e){
+                                    console.log(e);
                                 }
-                                if(!icon && !name){
-                                    set.status = 400;
-                                    return "You must include either the name or the icon"
-                                }
-                                const user = await User.findOne({ _id: profile._id });
-                                const chatFolder = new ChatFolder({
-                                    icon: icon,
-                                    name: name,
-                                    elements: elements
-                                })
-                                user?.chat_folders.push(chatFolder);
-                                await user?.save();
-                                return JSON.stringify(chatFolder);
                             }, {
                                 body: t.Object({
                                     icon: t.Optional(t.String()),
