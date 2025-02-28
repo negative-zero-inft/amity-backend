@@ -209,8 +209,8 @@ const app = new Elysia()
                     description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [profile._id],
-                    owner_id: profile._id // i feel like these should be replaced with an amity id, but we'll see
+                    members: [profile.id],
+                    owner_id: profile.id // done
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
@@ -235,7 +235,7 @@ const app = new Elysia()
                         return 'Unauthorized';
                     }
                     
-                    if (group?.members.findIndex(e => e._id as any == profile._id) == -1) {
+                    if (group?.members.findIndex(e => e.id as string == profile.id && e.server as string == server) == -1) {
                         set.status = 401;
                         return 'Unauthorized';
                     }
