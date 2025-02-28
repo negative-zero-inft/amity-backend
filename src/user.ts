@@ -72,7 +72,6 @@ export const user = new Elysia()
                                     return "You must include either the name or the icon"
                                 }
                                 const user = await User.findOne({ _id: profile._id });
-                                console.log(elements)
                                 const chatFolder = new ChatFolder({
                                     icon: icon,
                                     name: name,
@@ -85,7 +84,7 @@ export const user = new Elysia()
                                 body: t.Object({
                                     icon: t.Optional(t.String()),
                                     name: t.Optional(t.String()),
-                                    elements: t.Optional(t.Any()) //TODO: ADD CHECKING FOR WHETHER IT'S ACTUALLY THE CHATS ASIDUHASDUIJ
+                                    elements: t.Optional() //TODO: ADD CHECKING FOR WHETHER IT'S ACTUALLY THE CHATS ASIDUHASDUIJ
                                 })
                             })
                             .put("/", async({jwt, set, query, error, body}) => {
@@ -110,7 +109,13 @@ export const user = new Elysia()
                                     _id: t.String(),
                                     icon: t.String(),
                                     name: t.String(),
-                                    elements: t.Optional(t.Any())
+                                    elements: t.Optional(t.Array(t.Object({
+                                        id: t.Object({
+                                            id: t.String(),
+                                            server: t.String()
+                                        }),
+                                        type: t.String()
+                                    })))
                                 })
                             })
                             .delete("/", async({jwt, set, query, body: {_id}}) => {
