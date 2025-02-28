@@ -126,13 +126,7 @@ export const user = new Elysia()
                                     _id: t.String(),
                                     icon: t.String(),
                                     name: t.String(),
-                                    elements: t.Optional(t.Array(t.Object({
-                                        id: t.Object({
-                                            id: t.String(),
-                                            server: t.String()
-                                        }),
-                                        chat_type: t.String()
-                                    })))
+                                    elements: t.Optional(t.Any())
                                 })
                             })
                             .delete("/", async({jwt, set, query, body: {_id}}) => {
