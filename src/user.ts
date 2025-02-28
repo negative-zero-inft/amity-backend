@@ -84,7 +84,13 @@ export const user = new Elysia()
                                 body: t.Object({
                                     icon: t.Optional(t.String()),
                                     name: t.Optional(t.String()),
-                                    elements: t.Optional() //TODO: ADD CHECKING FOR WHETHER IT'S ACTUALLY THE CHATS ASIDUHASDUIJ
+                                    elements: t.Optional(t.Array(t.Object({
+                                        id: t.Object({
+                                            id: t.String(),
+                                            server: t.String()
+                                        }),
+                                        type: t.String()
+                                    })))
                                 })
                             })
                             .put("/", async({jwt, set, query, error, body}) => {
