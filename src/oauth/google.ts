@@ -79,6 +79,7 @@ export const google = new Elysia()
                         id: amityId,
                         tag: tag,
                         name: tag,
+                        banner: "Jump.png",
                         avatar: picture,
                         email: email,
                         connections: [{
