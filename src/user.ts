@@ -62,58 +62,77 @@ export const user = new Elysia()
                             return JSON.stringify(user?.chat_folders);
                         })
                             .post("/add", async ({ jwt, set, query, body: { icon, name, elements } }) => {
-                                const profile = await jwt.verify(query.token)
-                                if (!profile) {
-                                    set.status = 401;
-                                    return 'Unauthorized';
+                                try{
+                                    const profile = await jwt.verify(query.token)
+                                    if (!profile) {
+                                        set.status = 401;
+                                        return 'Unauthorized';
+                                    }
+                                    if(!icon && !name){
+                                        set.status = 400;
+                                        return "You must include either the name or the icon"
+                                    }
+                                    const user = await User.findOne({ _id: profile._id });
+                                    console.log(elements)
+                                    const chatFolder = new ChatFolder({
+                                        icon: icon,
+                                        name: name,
+                                        elements: elements
+                                    })
+                                    user?.chat_folders.push(chatFolder);
+                                    await user?.save();
+                                    return JSON.stringify(chatFolder);
+                                }catch(e){
+                                    set.status = 500;
+                                    console.log(e);
+                                    return e;
                                 }
-                                if(!icon && !name){
-                                    set.status = 400;
-                                    return "You must include either the name or the icon"
-                                }
-                                const user = await User.findOne({ _id: profile._id });
-                                const chatFolder = new ChatFolder({
-                                    icon: icon,
-                                    name: name,
-                                    elements: elements
-                                })
-                                user?.chat_folders.push(chatFolder);
-                                await user?.save();
-                                return JSON.stringify(chatFolder);
                             }, {
                                 body: t.Object({
                                     icon: t.Optional(t.String()),
                                     name: t.Optional(t.String()),
-                                    elements: t.Optional(t.Any()) //TODO: ADD CHECKING FOR WHETHER IT'S ACTUALLY THE CHATS ASIDUHASDUIJ
+                                    elements: t.Optional(t.Array(t.Object({
+                                        id: t.Object({
+                                            id: t.String(),
+                                            server: t.String()
+                                        }),
+                                        chat_type: t.String()
+                                    })))
                                 })
                             })
                             .put("/", async({jwt, set, query, error, body}) => {
-                                const profile = await jwt.verify(query.token)
-                                if (!profile) {
-                                    set.status = 401;
-                                    return 'Unauthorized';
-                                }
-                                const user = await User.findOne({_id: profile._id});
-                                if(!user?.chat_folders) return error(500);
-                                for(let i = 0; i < user?.chat_folders.length; i++) {
-                                    const folder = user?.chat_folders[i];
-                                    if(folder._id.toString() == body._id) {
-                                        folder.icon = body.icon;
-                                        folder.name = body.name;
-                                        if(body.elements) {
-                                            for(const folder of body.elements) {
-                                                folder.elements.push(folder);
-                                            }
+                                try{
+                                        const profile = await jwt.verify(query.token)
+                                    if (!profile) {
+                                        set.status = 401;
+                                        return 'Unauthorized';
+                                    }
+                                    const user = await User.findOne({_id: profile._id});
+                                    if(!user?.chat_folders) return error(500);
+                                    for(let i = 0; i < user?.chat_folders.length; i++) {
+                                        const folder = user?.chat_folders[i];
+                                        if(folder._id.toString() == body._id) {
+                                            folder.icon = body.icon;
+                                            folder.name = body.name;
+                                            if(body.elements) folder.elements = body.elements;
                                         }
                                     }
+                                    await user?.save();
+                                }catch(e){
+                                    console.log(e);
                                 }
-                                await user?.save();
                             }, {
                                 body: t.Object({
                                     _id: t.String(),
                                     icon: t.String(),
                                     name: t.String(),
-                                    elements: t.Optional(t.Any())
+                                    elements: t.Optional(t.Array(t.Object({
+                                        id: t.Object({
+                                            id: t.String(),
+                                            server: t.String()
+                                        }),
+                                        chat_type: t.String()
+                                    })))
                                 })
                             })
                             .delete("/", async({jwt, set, query, body: {_id}}) => {
