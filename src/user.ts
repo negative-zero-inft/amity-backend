@@ -70,6 +70,29 @@ export const user = new Elysia()
                             banner: t.String(),
                         })
                     })
+                    .get("/settings", async({jwt, set, query}) => {
+                        const profile = await jwt.verify(query.token)
+                        if (!profile) {
+                            set.status = 401;
+                            return 'Unauthorized';
+                        }
+                        const user = await User.findOne({ 'id.id': profile.id });
+                        return user?.settings;
+                    })
+                    .put("/settings", async({jwt, set, query, body, error}) => {
+                        if(JSON.stringify(body).length > 2000) return error(413);
+                        const profile = await jwt.verify(query.token)
+                        if (!profile) {
+                            set.status = 401;
+                            return 'Unauthorized';
+                        }
+                        const user = await User.findOne({ 'id.id': profile.id });
+                        user?.settings = body;
+                        await user?.save();
+                    }, {
+                        //object with user's settings
+                        body: t.Any()
+                    })
                     .group("/chatfolders", (app) =>
                         app.get("/", async ({ jwt, set, query }) => {
                             const profile = await jwt.verify(query.token)
