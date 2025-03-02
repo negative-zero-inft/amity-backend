@@ -3,7 +3,7 @@ import { amityIdSchema } from './amityId';
 
 export const channelSchema = new mongoose.Schema({
     id: amityIdSchema,
-    type: Number,
+    type: String,
     name: String,
     pinned: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],

@@ -229,6 +229,15 @@ const app = new Elysia()
                     description: t.Optional(t.String()),
                     is_public: t.Boolean(),
                     has_channels: t.Boolean(),
+                    channels: t.Optional(t.Array(t.Object({
+                        id: t.Object({
+                            id: t.String(),
+                            server: t.String()
+                        }),
+                        type: t.String(),
+                        name: t.String(),
+                        icon: t.String()
+                    })))
                 })
             })
             .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
