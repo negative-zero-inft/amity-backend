@@ -25,6 +25,7 @@ export const user = new Elysia()
                 console.log(user);
 
                 if(!profile || profile._id.toString() != user._id.toString()) return JSON.stringify({
+                    _id: user?._id,
                     id: user?.id,
                     name: user?.name,
                     avatar: user?.avatar,
@@ -37,7 +38,7 @@ export const user = new Elysia()
                     tag: user?.tag,
                     public_key: user?.public_key,
                 })
-                
+
                 return JSON.stringify(user);
             })
             .group("/me", (app) =>
