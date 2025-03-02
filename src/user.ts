@@ -15,12 +15,30 @@ export const user = new Elysia()
     )
     .group("/user", (app) =>
         app
-            .get('/:id/info', async ({ jwt, set, params: { id } }) => {
+            .get('/:id/info', async ({ jwt, set, query, params: { id } }) => {
+                const profile = await jwt.verify(query.token)
                 const user = await User.findOne({ 'id.id': id });
+                if(!user){
+                    set.status = 404;
+                    return "User not found";
+                }
                 console.log(user);
-                delete user!.password;
 
-                return user;
+                if(!profile || profile._id.toString() != user._id.toString()) return JSON.stringify({
+                    id: user?.id,
+                    name: user?.name,
+                    avatar: user?.avatar,
+                    banner: user?.banner,
+                    description: user?.description,
+                    followers: user?.followers,
+                    follows: user?.follows,
+                    public_channels: user?.public_channels,
+                    connections: user?.connections,
+                    tag: user?.tag,
+                    public_key: user?.public_key,
+                })
+                
+                return JSON.stringify(user);
             })
             .group("/me", (app) =>
                 app
