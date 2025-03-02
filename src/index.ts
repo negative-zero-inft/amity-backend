@@ -192,7 +192,7 @@ const app = new Elysia()
     )
     .group('/group', (app) =>
         app
-            .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels } }) => {
+            .post('/create', async ({ jwt, set, query, body: { name, icon, description, is_public, has_channels, channels } }) => {
                 const profile = await jwt.verify(query.token)
                 if (!profile) {
                     set.status = 401;
@@ -215,7 +215,8 @@ const app = new Elysia()
                     is_public: is_public,
                     has_channels: has_channels,
                     members: [user.id.id],
-                    owner_id: user.id.id // done
+                    owner_id: user.id.id,
+                    channels: channels || []
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
