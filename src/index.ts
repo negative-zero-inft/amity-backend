@@ -216,7 +216,16 @@ const app = new Elysia()
                     has_channels: has_channels,
                     members: [user.id.id],
                     owner_id: user.id.id,
-                    channels: channels || []
+                    channels: channels?.map((e: {type: string, name: string, icon: string}) => {
+                        const chRandomid = randomID();
+                        const channelAmityId = new AmityId({ id: chRandomid, server: Bun.env.SERVER_URL })
+                        return {
+                            id: channelAmityId,
+                            type: e.type,
+                            name: e.name,
+                            icon: e.icon
+                        }
+                    }) || []
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
@@ -231,10 +240,6 @@ const app = new Elysia()
                     is_public: t.Boolean(),
                     has_channels: t.Boolean(),
                     channels: t.Optional(t.Array(t.Object({
-                        id: t.Object({
-                            id: t.String(),
-                            server: t.String()
-                        }),
                         type: t.String(),
                         name: t.String(),
                         icon: t.String()
