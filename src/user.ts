@@ -87,7 +87,11 @@ export const user = new Elysia()
                             return 'Unauthorized';
                         }
                         const user = await User.findOne({ 'id.id': profile.id });
-                        user?.settings = body;
+                        if(!user?.settings){
+                            set.status = 404;
+                            return "User not found";
+                        };
+                        user.settings = body;
                         await user?.save();
                     }, {
                         //object with user's settings
