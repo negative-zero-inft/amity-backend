@@ -214,8 +214,8 @@ const app = new Elysia()
                     description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [user.id],
-                    owner_id: user.id // done
+                    members: [user.id.id],
+                    owner_id: user.id.id // done
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
@@ -250,6 +250,44 @@ const app = new Elysia()
                     select: "-messages"
                 });
                 return JSON.stringify(group);
+            })
+            .post("/:id/send", async({params: {id}, jwt, set, body, query, error}) => {
+                const profile = await jwt.verify(query.token)
+                if (!profile) {
+                    set.status = 401;
+                    return 'Unauthorized';
+                }
+                const group = await Group.findOne({"id.id": id});
+                if(group?.has_channels) return error(500);
+                await group?.populate({
+                    path: "channels",
+                    select: "-messages"
+                });
+                const channel = group?.channels[0];
+                const amityId = new AmityId({ id: profile.id, server: Bun.env.SERVER_URL })
+                const message = new Message({
+                    date: body.date,
+                    author_id: amityId,
+                    encrypted: body.encrypted,
+                    content: body.content,
+                    contents: body.contents
+                });
+                await message.save();
+                channel?.messages.push(message);
+                await channel?.save();
+            }, {
+                body: t.Object({
+                    date: t.Date(),
+                    encrypted: t.Boolean(),
+                    content: t.Optional(t.String()),
+                    contents: t.Optional(t.Array(t.Object({
+                        for: t.Object({
+                            id: t.String(),
+                            server: t.String()
+                        }),
+                        content: t.String()
+                    })))
+                })
             })
     )
     .listen(Bun.env.PORT ?? 3000);
