@@ -8,7 +8,7 @@ export const messageSchema = new mongoose.Schema({
     encrypted: Boolean,
     content: String, //for groups, etc. where the message isn't encrypted
     contents: [{ //if the message is encrypted, then this shouldn't be empty
-        for: amityIdSchema, //whatever really, could also be a user ref
+        for: amityIdSchema,
         content: String
     }]
 });
