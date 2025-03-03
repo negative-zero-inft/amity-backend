@@ -48,8 +48,6 @@ const app = new Elysia()
             id: amityId,
             tag: tag,
             name: name,
-            banner: "Jump.png",
-            avatar: "Dobby.png",
             password: await Bun.password.hash(password),
             cdn: cdn
         });
