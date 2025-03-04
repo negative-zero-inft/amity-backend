@@ -5,6 +5,7 @@ import group from "./paths/group";
 import user from "./paths/user";
 import auth from "./paths/auth";
 import { jwt } from "@elysiajs/jwt";
+
 const app = new Elysia()
     .use(cors({}))
     .use(

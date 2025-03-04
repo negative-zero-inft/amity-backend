@@ -17,7 +17,6 @@ export default new Elysia()
         exp: '7d'
     })
 )
-.listen(3000)
 .group("/auth", (app) =>
     app
     .get("/", ({ jwt, query, set }) => {
