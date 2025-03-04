@@ -20,9 +20,9 @@ export default new Elysia()
 .listen(3000)
 .group("/auth", (app) =>
     app
-    .get("/", ({ jwt, query }) => {
-        const generated = auther(1814576689)
-        return generated
+    .get("/", ({ jwt, query, set }) => {
+        set.status = 200
+        return "amity connected"
     })
     .post("/register", async ({body, set}) =>{
         try{
