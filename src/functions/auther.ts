@@ -1,4 +1,6 @@
-export const auther = (magicNumber: number, currentTime: Date) => {
+export const auther = (magicNumber: number) => {
+
+    const currentTime = new Date()
     // Round the current time to the nearest 2 minutes
     const roundedTime = new Date(Math.round(currentTime.getTime() / (2 * 60 * 1000)) * (2 * 60 * 1000));
 
