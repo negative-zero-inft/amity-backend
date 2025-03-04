@@ -204,6 +204,8 @@ const app = new Elysia()
                 console.log("PROFILE: ", profile);
                 const randomid = randomID();
                 const amityId = new AmityId({ id: randomid, server: Bun.env.SERVER_URL })
+                const mcRandomid = randomID();
+                const mcannelAmityId = new AmityId({ id: mcRandomid, server: Bun.env.SERVER_URL })
 
                 const group = new Group({
                     id: amityId,
@@ -223,7 +225,12 @@ const app = new Elysia()
                             name: e.name,
                             icon: e.icon
                         }
-                    }) || []
+                    }) || [{
+                        id: mcannelAmityId,
+                        type: "text",
+                        name: "General",
+                        icon: "https://nrd.neg-zero.com/Dobby.png"
+                    }]
                 })
                 await group.save();
                 const owner = await User.findOne({_id: profile._id});
@@ -263,6 +270,61 @@ const app = new Elysia()
                     select: "-messages"
                 });
                 return JSON.stringify(group);
+            })
+            .get("/:id/messages", async ({ jwt, set, query, params: { id } }) => {
+                const profile = await jwt.verify(query.token)
+                const limit = Number(query.limit) < 100 ? Number(query.limit) : 100;
+                const group = await Group.findOne({ "id.id": id }); 
+                if(!group) {
+                    set.status = 404;
+                    return 'Group not found';
+                }
+                const mcRandomid = randomID();
+                const mcannelAmityId = new AmityId({ id: mcRandomid, server: Bun.env.SERVER_URL })
+                const nc = new Channel({
+                    id: mcannelAmityId,
+                    type: "text",
+                    name: "General",
+                    icon: "https://nrd.neg-zero.com/Dobby.png",
+                    messages: [
+                        new Message({
+                            date: new Date(),
+                            author_id: profile.id,
+                            encrypted: false,
+                            content: "Welcome to the group!",
+                            contents: []
+                        })
+                    ]
+                })
+                await nc.save()
+                if(group.channels.length != 1) {
+                    group.channels.push(nc._id)
+                    await group.save()
+                }
+                await group?.populate({
+                    path: "channels",
+                    select: "-messages"
+                });
+                const channel = await group?.channels[0];
+                console.log("CHANNEL: ", channel);
+                console.log("GROUP: ", group);
+                if (!group?.is_public) {
+                    if (!profile) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
+                    const isInGroup = await Group.findOne({ members: profile.id, 'channels': id });
+                    if (!isInGroup) {
+                        set.status = 401;
+                        return 'Unauthorized';
+                    }
+                }
+                await channel?.populate({
+                    path: 'messages',
+                    options: { limit: limit, sort: { date: 'descending' } }
+                });
+                console.log("CHANNEL: ", channel);
+                return channel?.messages;
             })
             .post("/:id/send", async({params: {id}, jwt, set, body, query, error}) => {
                 const profile = await jwt.verify(query.token)
