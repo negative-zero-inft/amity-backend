@@ -6,12 +6,12 @@ import { github } from "./oauth/github";
 import { discord } from "./oauth/discord";
 import { osu } from "./oauth/osu";
 import { user } from "./user";
-import { User } from "./schema/user";
-import { Group } from "./schema/group";
-import { Channel } from "./schema/channel";
-import { AmityId } from "./schema/amityId";
+import { User } from "./schemas/user";
+import { Group } from "./schemas/group";
+import { Channel } from "./schemas/channel";
+import { AmityId } from "./schemas/amityId";
 import mongoose from "mongoose";
-import { Message } from "./schema/message";
+import { Message } from "./schemas/message";
 import { dm } from "./dm";
 import { cors } from "@elysiajs/cors";
 

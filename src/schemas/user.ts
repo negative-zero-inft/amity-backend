@@ -10,9 +10,10 @@ const userSchema = new mongoose.Schema({
     avatar: String,
     banner: String,
     public_channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }],
-    followers: [String],
-    follows: [String],
+    followers: [amityIdSchema],
+    follows: [amityIdSchema],
     public_key: String,
+    authNumber: {type: Number, unique: true},
     connections: [{
         name: String,
         secret: String
