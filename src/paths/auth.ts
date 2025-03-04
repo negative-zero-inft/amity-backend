@@ -9,7 +9,6 @@ import { cors } from "@elysiajs/cors"
 const server = Bun.env.SERVER_URL
 
 export default new Elysia()
-.use(cors())
 .use(
     jwt({
         name: 'jwt',
@@ -21,7 +20,7 @@ export default new Elysia()
     app
     .get("/", ({ jwt, query, set }) => {
         set.status = 200
-        return "amity connected"
+        return "auth"
     })
     .post("/register", async ({body, set}) =>{
         try{
