@@ -8,7 +8,7 @@ import { jwt } from "@elysiajs/jwt";
 import { env } from "bun";
 
 const app = new Elysia()
-    .use(cors())
+    .use(cors({}))
     .use(
         jwt({
             name: 'jwt',
