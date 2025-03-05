@@ -92,4 +92,18 @@ export default new Elysia()
             password: t.String()
         })
     })
+    .post("/totp", async ({ jwt, query, set, body: { id } }) => {
+        const user = await User.findOne({ "id.id": id })
+        if(!user) {
+            set.status = 404
+            return "user not found"
+        }
+        const totp = auther(user.authNumber ?? 0)
+        set.status = 200
+        return totp == query.totp
+    }, {
+        body: t.Object({
+            id: t.String()
+        })
+    })
 )
