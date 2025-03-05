@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose';
 
 export const amityIdSchema = new mongoose.Schema({
-    id: {type: String, required:true},
+    id: {type: String, required:true, unique: true},
     server: {type: String, required: true}
 });
 

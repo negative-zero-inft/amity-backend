@@ -1,9 +1,9 @@
 import { Elysia, t } from 'elysia'
 import { jwt } from '@elysiajs/jwt'
-import { User } from './schema/user';
-import { AmityId } from './schema/amityId';
+import { User } from './schemas/user';
+import { AmityId } from './schemas/amityId';
 import { randomID } from './utils';
-import { ChatFolder } from './schema/chatFolder';
+import { ChatFolder } from './schemas/chatFolder';
 
 export const user = new Elysia()
     .use(

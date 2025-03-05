@@ -2,12 +2,12 @@ import { Elysia, t } from 'elysia'
 import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
 import { randomID } from './utils';
-import { User } from './schema/user';
-import { AmityId } from './schema/amityId';
-import { Channel } from './schema/channel';
-import { Chat } from './schema/chat';
-import { Message } from './schema/message';
-import { Group } from './schema/group';
+import { User } from './schemas/user';
+import { AmityId } from './schemas/amityId';
+import { Channel } from './schemas/channel';
+import { Chat } from './schemas/chat';
+import { Message } from './schemas/message';
+import { Group } from './schemas/group';
 
 export const dm = new Elysia()
     .use(
