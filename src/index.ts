@@ -212,8 +212,8 @@ const app = new Elysia()
                     description: description || "",
                     is_public: is_public,
                     has_channels: has_channels,
-                    members: [user.id.id],
-                    owner_id: user.id.id,
+                    members: [user.id],
+                    owner_id: user.id,
                     channels: channels?.map((e: {type: string, name: string, icon: string}) => {
                         const chRandomid = randomID();
                         const channelAmityId = new AmityId({ id: chRandomid, server: Bun.env.SERVER_URL })
