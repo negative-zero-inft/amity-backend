@@ -7,8 +7,19 @@ import auth from "./routes/auth";
 import { jwt } from "@elysiajs/jwt";
 import { env } from "bun";
 import { auther } from "./functions/auther";
+import swagger from "@elysiajs/swagger";
 
 const app = new Elysia()
+    // TODO: Improve documentation
+    .use(swagger({
+        path: "/apidocs",
+        documentation: {
+            info: {
+                title: "Amity API documentation",
+                version: "1.0.0"
+            }
+        }
+    }))
     .use(cors({}))
     .use(
         jwt({

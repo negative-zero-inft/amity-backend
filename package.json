@@ -8,6 +8,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.2",
     "arctic": "^3.3.0",
     "elysia": "latest",
     "elysia-oauth2": "^2.0.0",
