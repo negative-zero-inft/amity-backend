@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia'
 import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
-import { randomID, randomChars } from '../utils';
+import { randomID, randomChars } from '../functions/utils';
 import { User } from '../schemas/user';
 import { AmityId } from '../schemas/amityId';
 import { AwaitingConnection } from '../schemas/awaitingConnection';
