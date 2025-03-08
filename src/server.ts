@@ -10,6 +10,10 @@ import { auther } from "./functions/auther";
 import swagger from "@elysiajs/swagger";
 import { email } from "./email";
 import folders from "./routes/folders";
+import { discord } from "./oauth/discord";
+import { github } from "./oauth/github";
+import { google } from "./oauth/google";
+import { osu } from "./oauth/osu";
 
 const app = new Elysia()
     // TODO: Improve documentation
@@ -36,6 +40,12 @@ const app = new Elysia()
     .use(group)
     .use(user)
     .use(folders)
+    .group("/oauth", (app) => app
+        .use(discord)
+        .use(github)
+        .use(google)
+        .use(osu)
+    )
     .listen(3000);
 
 app.on("request", (r) => {
