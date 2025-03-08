@@ -1,28 +1,24 @@
 import * as React from 'react'
-import { Tailwind, Section, Text, Row, Column, Img, Link } from '@react-email/components'
+import { Tailwind, Section, Text, Row, Column, Img, Link, Button, Heading } from '@react-email/components'
 
 const baseURL = process.env.NODE_ENV === "production" ? process.env.CDN_URL : "";
 
 export default function OTPEmail({ otp }: { otp: number }) {
     return (
         <Tailwind>
-            <Section className="flex justify-center items-center w-screen min-h-screen font-sans">
-                <Section className="flex flex-col items-center w-76 rounded-2xl px-6 py-1 bg-gray-50">
-                    <Text className="text-xs font-medium text-violet-500">
-                        Verify your Email Address
-                    </Text>
-                    <Text className="text-gray-500 my-0">
-                        Use the following code to verify your email address
-                    </Text>
-                    <Text className="text-5xl font-bold pt-2">{otp}</Text>
-                    <Text className="text-gray-400 font-light text-xs pb-4">
-                        This code is valid for 10 minutes.
-                    </Text>
-                    <Text className="text-gray-600 text-xs">
-                        Thank you joining us
-                    </Text>
+            <Section className="min-w-screen font-sans flex flex-gap">
+                <Section>
+                    <Text className="text-lg">Hey! Thank you for joining Amity! Before we continue setting up your account, please confirm your email. This button will be valid for 10 minutes.</Text>
                 </Section>
-                <Section className="my-[40px] px-[32px] py-[40px]">
+                <div className="flex items-center justify-center h-[30px]">
+                    <Button
+                        className="box-border w-[230px] rounded-[10px] bg-indigo-600 px-[12px] py-[12px] text-center font-semibold text-white"
+                        href="https://react.email"
+                    >
+                        Verify your email
+                    </Button>
+                </div>
+                <Section className="px-[32px] py-[40px]">
                     <Row>
                         <Column className="w-[80%]">
                             <Img
@@ -33,9 +29,15 @@ export default function OTPEmail({ otp }: { otp: number }) {
                         </Column>
                         <Column align="right">
                             <Row align="right">
-                                <Column className="px-[8px]">
-                                    <Link className="text-gray-600 [text-decoration:none]" href="#">
-
+                                <Column>
+                                    <Link href="https://x.com/OfficialNegZero">
+                                        <Img
+                                            alt="X"
+                                            className="mx-[4px]"
+                                            height="36"
+                                            src="https://react.email/static/x-logo.png"
+                                            width="36"
+                                        />
                                     </Link>
                                 </Column>
                             </Row>
@@ -48,5 +50,5 @@ export default function OTPEmail({ otp }: { otp: number }) {
 }
 
 OTPEmail.PreviewProps = {
-    otp: 123456
+    otp: 123456,
 }

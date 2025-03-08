@@ -8,6 +8,7 @@ import { jwt } from "@elysiajs/jwt";
 import { env } from "bun";
 import { auther } from "./functions/auther";
 import swagger from "@elysiajs/swagger";
+import { email } from "./email";
 
 const app = new Elysia()
     // TODO: Improve documentation
@@ -20,6 +21,7 @@ const app = new Elysia()
             }
         }
     }))
+    .use(email)
     .use(cors({}))
     .use(
         jwt({
@@ -34,7 +36,7 @@ const app = new Elysia()
     .use(user)
     .listen(3000);
 
-app.on("request", (r) =>{
+app.on("request", (r) => {
     console.log("received a request for" + r.path)
 })
 mongoose.connect(env.MONGODB_URL ?? "");
