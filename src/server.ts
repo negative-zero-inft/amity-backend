@@ -9,6 +9,7 @@ import { env } from "bun";
 import { auther } from "./functions/auther";
 import swagger from "@elysiajs/swagger";
 import { email } from "./email";
+import folders from "./routes/folders";
 
 const app = new Elysia()
     // TODO: Improve documentation
@@ -34,6 +35,7 @@ const app = new Elysia()
     .use(auth)
     .use(group)
     .use(user)
+    .use(folders)
     .listen(3000);
 
 app.on("request", (r) => {
