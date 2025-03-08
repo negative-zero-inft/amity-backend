@@ -5,6 +5,8 @@ import { User } from "../schemas/user"
 import { randomID } from "../functions/utils"
 import { AmityId } from "../schemas/amityId"
 import { Group } from "../schemas/group"
+import { Channel } from "../schemas/channel"
+import { auther } from "../functions/auther"
 
 export default new Elysia()
 .use(
@@ -15,13 +17,14 @@ export default new Elysia()
     })
 )
 .group("/group", (app) =>
-    app
-    .get("/", ({ jwt, query, set }) => {
-        set.status = 200
-        return "user"
-    })
-    .post("/create", async ({ jwt, query, set, body: { name, icon, description, is_public, has_channels, channels } }) =>{
-        
+app
+.get("/", ({ jwt, query, set }) => {
+    set.status = 200
+    return "user"
+})
+.post("/create", async ({ jwt, query, set, body: { name, icon, description, is_public, has_channels, channels } }) =>{
+
+    try{
         const profile = await jwt.verify(query.token)
         if (!profile) {
             set.status = 401;
@@ -44,22 +47,22 @@ export default new Elysia()
             description: description || "",
             is_public: is_public,
             has_channels: has_channels,
-            members: [user.id.id],
-            owner_id: user.id.id,
+            members: [user.id],
+            owner_id: user.id,
             channels: channels?.map((e: {type: string, name: string, icon: string}) => {
                 const chRandomid = randomID();
                 const channelAmityId = new AmityId({ id: chRandomid, server: Bun.env.SERVER_URL })
-                return {
+                return new Channel({
                     id: channelAmityId,
                     type: e.type,
                     name: e.name,
                     icon: e.icon
-                }
-            }) || [{
+                })
+            }) || [new Channel({
                 id: mcannelAmityId,
                 type: "text",
                 name: "General"
-            }]
+            })]
         })
 
         await group.save();
@@ -67,18 +70,59 @@ export default new Elysia()
         owner?.chats.push({chat_type: "group", id: amityId});
         await owner?.save();
         return JSON.stringify(group);
-    }, {
-        body: t.Object({
+    }catch(err){
+        console.log(err)
+        set.status = 500
+        return err
+    }
+}, {
+    body: t.Object({
+        name: t.String(),
+        icon: t.Optional(t.String()),
+        description: t.Optional(t.String()),
+        is_public: t.Boolean(),
+        has_channels: t.Boolean(),
+        channels: t.Optional(t.Array(t.Object({
+            type: t.String(),
             name: t.String(),
-            icon: t.Optional(t.String()),
-            description: t.Optional(t.String()),
-            is_public: t.Boolean(),
-            has_channels: t.Boolean(),
-            channels: t.Optional(t.Array(t.Object({
-                type: t.String(),
-                name: t.String(),
-                icon: t.String()
-            })))
-        })
+            icon: t.String()
+        })))
     })
+})
+.get("/:id/info", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
+    const group = await Group.findOne({"id.id": id})
+    if(!group){
+        set.status = 404
+        return "group not found"
+    }
+    await group.populate({
+        path: "channels",
+        select: "-messages"
+    });
+    if(group.is_public) return JSON.stringify(group)
+    if(!totp || !uid || !homeserver){
+        console.log(totp, uid, homeserver)
+        set.status = 401
+        return "can't authenticate user"
+    }
+    if(homeserver != env.SERVER_URL){
+        set.status = 418
+        return "not implemented yet :3"
+    }
+    const user = await User.findOne({"id.id": uid})
+    if(!user){
+        set.status = 401
+        return "user not found"
+    }
+    if(totp != auther(user.authNumber as number)){
+        set.status = 401
+        return "incorrect totp"
+    }
+    if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
+        return JSON.stringify(group)
+    }else{
+        set.status = 401
+        return "unauthorized"
+    }
+})
 )
