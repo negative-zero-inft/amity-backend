@@ -135,7 +135,7 @@ const app = new Elysia()
                 const profile = await jwt.verify(query.token)
                 const limit = Number(query.limit) < 100 ? Number(query.limit) : 100;
                 const channel = await Channel.findOne({ "id.id": id });
-                const group = await Group.findOne({ 'channels': channel?._id }); 
+                const group = await Group.findOne({ 'channels': channel?._id });
                 console.log("GROUP: ", group);
                 if (!group?.is_public) {
                     if (!profile) {
@@ -161,7 +161,7 @@ const app = new Elysia()
                     set.status = 401;
                     return 'Unauthorized';
                 }
-                const channel = await Channel.findOne({"id.id": id});
+                const channel = await Channel.findOne({ "id.id": id });
                 const amityId = new AmityId({ id: profile.id, server: Bun.env.SERVER_URL })
                 const message = new Message({
                     date: body.date,
@@ -196,8 +196,8 @@ const app = new Elysia()
                     set.status = 401;
                     return 'Unauthorized';
                 }
-                const user = await User.findOne({_id: profile._id})
-                if(!user) {
+                const user = await User.findOne({ _id: profile._id })
+                if (!user) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
@@ -216,7 +216,7 @@ const app = new Elysia()
                     has_channels: has_channels,
                     members: [user.id.id],
                     owner_id: user.id.id,
-                    channels: channels?.map((e: {type: string, name: string, icon: string}) => {
+                    channels: channels?.map((e: { type: string, name: string, icon: string }) => {
                         const chRandomid = randomID();
                         const channelAmityId = new AmityId({ id: chRandomid, server: Bun.env.SERVER_URL })
                         return {
@@ -233,8 +233,8 @@ const app = new Elysia()
                     }]
                 })
                 await group.save();
-                const owner = await User.findOne({_id: profile._id});
-                owner?.chats.push({chat_type: "group", id: amityId});
+                const owner = await User.findOne({ _id: profile._id });
+                owner?.chats.push({ chat_type: "group", id: amityId });
                 await owner?.save();
                 return JSON.stringify(group);
             }, {
@@ -259,7 +259,7 @@ const app = new Elysia()
                         set.status = 401;
                         return 'Unauthorized';
                     }
-                    
+
                     if (group?.members.findIndex(e => e.id as string == profile.id && e.server as string == server) == -1) {
                         set.status = 401;
                         return 'Unauthorized';
@@ -274,8 +274,8 @@ const app = new Elysia()
             .get("/:id/messages", async ({ jwt, set, query, params: { id } }) => {
                 const profile = await jwt.verify(query.token)
                 const limit = Number(query.limit) < 100 ? Number(query.limit) : 100;
-                const group = await Group.findOne({ "id.id": id }); 
-                if(!group) {
+                const group = await Group.findOne({ "id.id": id });
+                if (!group) {
                     set.status = 404;
                     return 'Group not found';
                 }
@@ -297,7 +297,7 @@ const app = new Elysia()
                     ]
                 })
                 await nc.save()
-                if(group.channels.length != 1) {
+                if (group.channels.length != 1) {
                     group.channels.push(nc._id)
                     await group.save()
                 }
@@ -326,14 +326,14 @@ const app = new Elysia()
                 console.log("CHANNEL: ", channel);
                 return channel?.messages;
             })
-            .post("/:id/send", async({params: {id}, jwt, set, body, query, error}) => {
+            .post("/:id/send", async ({ params: { id }, jwt, set, body, query, error }) => {
                 const profile = await jwt.verify(query.token)
                 if (!profile) {
                     set.status = 401;
                     return 'Unauthorized';
                 }
-                const group = await Group.findOne({"id.id": id});
-                if(group?.has_channels) return error(500);
+                const group = await Group.findOne({ "id.id": id });
+                if (group?.has_channels) return error(500);
                 await group?.populate({
                     path: "channels",
                     select: "-messages"
