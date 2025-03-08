@@ -6,7 +6,7 @@ import { randomID } from "../functions/utils"
 import { AmityId } from "../schemas/amityId"
 import { Group } from "../schemas/group"
 import { Channel } from "../schemas/channel"
-import { auther } from "../functions/auther"
+import { auther, checkTotp } from "../functions/auther"
 
 export default new Elysia()
 .use(
@@ -105,18 +105,9 @@ app
         set.status = 401
         return "can't authenticate user"
     }
-    if(homeserver != env.SERVER_URL){
-        set.status = 418
-        return "not implemented yet :3"
-    }
-    const user = await User.findOne({"id.id": uid})
-    if(!user){
-        set.status = 401
-        return "user not found"
-    }
-    if(totp != auther(user.authNumber as number)){
-        set.status = 401
-        return "incorrect totp"
+    const res: {isError: boolean, msg: string} = await checkTotp(totp, homeserver, uid, set)
+    if(res.isError){
+        return res.msg
     }
     if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
         return JSON.stringify(group)

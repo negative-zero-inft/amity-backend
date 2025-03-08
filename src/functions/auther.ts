@@ -1,3 +1,6 @@
+import { User } from "../schemas/user";
+import { env } from "bun";
+
 export const auther = (magicNumber: number) => {
 
     const currentTime = new Date()
@@ -19,6 +22,42 @@ export const auther = (magicNumber: number) => {
     const base36Hash = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8);
 
     return base36Hash;
+}
+
+export const checkTotp = async (totp: string, homeserver: string, uid: string, set: any) =>{
+    if(homeserver != env.SERVER_URL){
+        const res = await fetch(`${homeserver}:3000/auth?totp=${totp}&uid=${uid}`)
+        if(res.status != 200){
+            return {
+                isError: true,
+                msg: await res.text()
+            }
+        }else{
+            return {
+                isError: false,
+                msg: "authed"
+            }
+        }
+    }
+    const user = await User.findOne({"id.id": uid})
+    if(!user){
+        set.status = 401
+        return {
+            isError: true,
+            msg: "user not found"
+        }
+    }
+    if(totp != auther(user.authNumber as number)){
+        set.status = 401
+        return {
+            isError: true,
+            msg: "incorrect totp"
+        }
+    }
+    return {
+        isError: false,
+        msg: "authed"
+    }
 }
 
 export const isPrime = (num: number) => {
