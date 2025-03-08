@@ -18,9 +18,22 @@ export default new Elysia()
 )
 .group("/auth", (app) =>
     app
-    .get("/", ({ jwt, query, set }) => {
-        set.status = 200
-        return "auth"
+    .get("/", async ({ jwt, query: { totp, uid }, set }) => {
+        if(!totp || !uid){
+            set.status = 401
+            return "can't authenticate"
+        }
+        const user = await User.findOne({"id.id": uid})
+        if(!user){
+            set.status = 401
+            return "can't find user"
+        }
+        if(auther(user.authNumber as number) == totp){
+            return "authed"
+        }else{
+            set.status = 401
+            return "invalid totp"
+        }
     })
     .post("/register", async ({body, set}) =>{
         try{
