@@ -5,14 +5,25 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - .:/app
       - /app/node_modules
     env_file:
       - .env
     depends_on:
       - mongodb
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules
+            - .git
+            - .env
+        - action: rebuild
+          path: package.json
 
   mongodb:
+    attach: false
     image: mongo:latest
     container_name: amity-mongodb
     ports:

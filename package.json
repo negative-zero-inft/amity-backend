@@ -3,18 +3,27 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/server.ts",
+    "email": "email dev --dir src/emails"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.2",
+    "@react-email/components": "^0.0.33",
     "arctic": "^3.3.0",
     "elysia": "latest",
     "elysia-oauth2": "^2.0.0",
-    "mongoose": "^8.10.1"
+    "mongoose": "^8.10.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.1.2"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "bun-types": "latest",
+    "react-email": "^3.0.7"
   },
-  "module": "src/index.js"
+  "module": "src/server.js"
 }

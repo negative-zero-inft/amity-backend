@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 import { oauth2 } from "elysia-oauth2";
 import { jwt } from '@elysiajs/jwt'
 import { randomChars, randomID } from '../utils';
-import { User } from '../schema/user';
-import { AmityId } from '../schema/amityId';
-import { AwaitingConnection } from '../schema/awaitingConnection';
+import { User } from '../schemas/user';
+import { AmityId } from '../schemas/amityId';
+import { AwaitingConnection } from '../schemas/awaitingConnection';
 
 export const discord = new Elysia()
     .use(
