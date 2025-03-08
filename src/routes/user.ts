@@ -28,6 +28,6 @@ export default new Elysia()
             return "user not found"
         }
         set.status = 200
-        return user
+        return JSON.stringify(user)
     })
 )

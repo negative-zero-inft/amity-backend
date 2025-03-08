@@ -76,6 +76,12 @@ export default new Elysia()
             
             console.log("user logged in")
             console.log(user);
+
+            if(!user.authNumber){
+                user.authNumber = findRandom32DigitPrime()
+                await user.save()
+            }
+    
             set.status = 200
             return {
                 token: await jwt.sign({ id: user.id.id, _id: user._id.toString() }),

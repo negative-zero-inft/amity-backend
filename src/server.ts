@@ -34,6 +34,9 @@ const app = new Elysia()
     .use(user)
     .listen(3000);
 
+app.on("request", (r) =>{
+    console.log("received a request for" + r.path)
+})
 mongoose.connect(env.MONGODB_URL ?? "");
 console.log(`amity is running on ${app.server?.hostname}:${app.server?.port}`);
 console.log(auther(1150046657))
