@@ -134,7 +134,7 @@ app
         return "this group has channels"
     }
     const channel = group.channels[0]
-    if(group.is_public) return JSON.stringify((group.channels[0] as any).messages)
+    if(group.is_public) return JSON.stringify((channel as any).messages)
     if(!totp || !uid || !homeserver){
         console.log(totp, uid, homeserver)
         set.status = 401
@@ -183,7 +183,7 @@ app
         if(res.isError){
             return res.msg
         }
-        if(group.members.find(e => e.id == uid && e.server == homeserver)){
+        if(group.members.find(e => e.id == uid && e.id.server == homeserver)){
             const amityId = new AmityId({ id: randomID(), server: Bun.env.SERVER_URL })
             const msg = new Message({
                 id: amityId,
