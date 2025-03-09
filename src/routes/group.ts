@@ -5,8 +5,10 @@ import { User } from "../schemas/user"
 import { randomID } from "../functions/utils"
 import { AmityId } from "../schemas/amityId"
 import { Group } from "../schemas/group"
-import { Channel } from "../schemas/channel"
+import { Channel, channelSchema } from "../schemas/channel"
 import { auther, checkTotp } from "../functions/auther"
+import { Message, messageSchema } from "../schemas/message"
+import { MessageCluster } from "../schemas/messageCluster"
 
 export default new Elysia()
 .use(
@@ -69,6 +71,7 @@ app
         const owner = await User.findOne({_id: profile._id});
         owner?.chats.push({chat_type: "group", id: amityId});
         await owner?.save();
+        console.log(group)
         return JSON.stringify(group);
     }catch(err){
         console.log(err)
@@ -115,5 +118,122 @@ app
         set.status = 401
         return "unauthorized"
     }
+})
+.get("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
+    const group = await Group.findOne({"id.id": id})
+    if(!group){
+        set.status = 404
+        return "group not found"
+    }
+    await group.populate({
+        path: "channels",
+        select: "-messages"
+    });
+    if(group.has_channels){
+        set.status = 400
+        return "this group has channels"
+    }
+    const channel = group.channels[0]
+    if(group.is_public) return JSON.stringify((group.channels[0] as any).messages)
+    if(!totp || !uid || !homeserver){
+        console.log(totp, uid, homeserver)
+        set.status = 401
+        return "can't authenticate user"
+    }
+    const res: {isError: boolean, msg: string} = await checkTotp(totp as string, homeserver as string, uid as string, set)
+    if(res.isError){
+        return res.msg
+    }
+    if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
+        return JSON.stringify((group.channels[0] as any).messages)
+    }else{
+        set.status = 401
+        return "unauthorized"
+    }
+})
+.post("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
+    try{
+        const group = await Group.findOne({"id.id": id})
+        if(!group){
+            set.status = 404
+            return "group not found"
+        }
+        await group.populate({
+            path: "channels",
+            select: "-messages"
+        });
+        if(group.has_channels){
+            set.status = 400
+            return "this group has channels"
+        }
+        const channel = group.channels[0] as any
+        if(!channel) {
+            const mcRandomid = randomID();
+            const amityId = new AmityId({ id: mcRandomid, server: Bun.env.SERVER_URL })
+            const ch = new Channel({
+                id: amityId,
+                type: "text",
+                name: "General"
+            })
+            group.channels.push(ch as any)
+            await group.save()
+        }
+
+        const res: {isError: boolean, msg: string} = await checkTotp(totp as string, homeserver as string, uid as string, set)
+        if(res.isError){
+            return res.msg
+        }
+        if(group.members.find(e => e.id == uid && e.server == homeserver)){
+            const amityId = new AmityId({ id: randomID(), server: Bun.env.SERVER_URL })
+            const msg = new Message({
+                id: amityId,
+                author_id: {
+                    id: uid,
+                    server: homeserver
+                },
+                type: body.type || "text",
+                content: body.content,
+                encrypted: body.encrypted || false,
+                date: new Date
+            })
+            await msg.save()
+            var latestCluster: any;
+            console.log(channel?.messages.length)
+            if(channel?.messages.length != 0){
+                latestCluster = channel?.messages[channel.messages.length - 1]
+            }
+            if(!latestCluster || latestCluster.messages.length == 100){
+                const newCluster = new MessageCluster({
+                    author: {
+                        id: uid,
+                        server: homeserver
+                    },
+                    date: new Date,
+                    messages: [msg]
+                })
+                await newCluster.save()
+                channel.messages.push(newCluster)
+                await channel.save()
+                return
+            }else{
+                latestCluster.messages.push(msg)
+                await latestCluster.save()
+                return
+            }
+        }else{
+            set.status = 401
+            return "unauthorized"
+        }
+    }catch(e){
+        set.status = 500
+        console.log(e)
+        return e
+    }
+}, {
+    body: t.Object({
+        content: t.String(),
+        type: t.Optional(t.String()),
+        encrypted: t.Optional(t.Boolean())
+    })
 })
 )

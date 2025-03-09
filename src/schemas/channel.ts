@@ -6,7 +6,7 @@ export const channelSchema = new mongoose.Schema({
     type: String,
     name: String,
     pinned: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
-    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
+    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MessageCluster' }],
     icon: String
 });
 
