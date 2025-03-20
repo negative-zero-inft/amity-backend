@@ -1,12 +1,11 @@
 import * as mongoose from 'mongoose';
 import { amityIdSchema } from './amityId';
-import { messageSchema } from './message';
 
 export const messageClusterSchema = new mongoose.Schema({
-    author: {type: amityIdSchema, unique: false},
+    author: {id: String,server: String},
     date: Date,
-    messages: [messageSchema]
+    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }]
 });
 
-export type MessageCluster = mongoose.InferSchemaType<typeof messageSchema>;
-export const MessageCluster = mongoose.model('Message', messageSchema);
+export type MessageCluster = mongoose.InferSchemaType<typeof messageClusterSchema>;
+export const MessageCluster = mongoose.model('MessageCluster', messageClusterSchema);

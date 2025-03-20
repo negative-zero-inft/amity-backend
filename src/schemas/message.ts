@@ -3,13 +3,13 @@ import { amityIdSchema } from './amityId';
 
 export const messageSchema = new mongoose.Schema({
     id: amityIdSchema,
-    author_id: {type: amityIdSchema, unique: false},
+    author_id: {id: String,server: String},
     type: String,
     date: Date,
     encrypted: Boolean,
     content: String, //for groups, etc. where the message isn't encrypted
     contents: [{ //if the message is encrypted, then this shouldn't be empty
-        for: {type: amityIdSchema, unique: false},
+        for: {id: String,server: String},
         content: String
     }]
 });

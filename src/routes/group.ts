@@ -44,9 +44,11 @@ app
             id: new AmityId({ id: mcRandomid, server: Bun.env.SERVER_URL }),
             type: "text",
             name: "General",
-            icon: "Chat"
+            icon: "Chat",
+            messages: []
         })
-        await mc.save()
+        if(!has_channels) await mc.save()
+        console.log(mc)
 
         const group = new Group({
             id: amityId,
@@ -65,11 +67,12 @@ app
                         id: channelAmityId,
                         type: e.type,
                         name: e.name,
-                        icon: e.icon
+                        icon: e.icon,
+                        messages: []
                     })
                     await c.save()
                     return c
-                }) || mc
+                }) || [mc]
             )
         })
 
@@ -118,29 +121,39 @@ app
     if(res.isError){
         return res.msg
     }
-    if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
+    if(group.owner_id?.id == uid || group.members.find(e =>{
+        if(e.id != uid) return false
+        if(e.server != homeserver) return false
+        return e
+    })){
         return JSON.stringify(group)
     }else{
         set.status = 401
         return "unauthorized"
     }
 })
-.get("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
+.get("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver, messageChunk }, body, params: { id } }) => {
     const group = await Group.findOne({"id.id": id})
     if(!group){
         set.status = 404
         return "group not found"
     }
-    await group.populate({
-        path: "channels",
-        select: "-messages"
-    });
+    await group.populate("channels");
     if(group.has_channels){
         set.status = 400
         return "this group has channels"
     }
     const channel = group.channels[0]
-    if(group.is_public) return JSON.stringify((group.channels[0] as any).messages)
+    await channel.populate("messages")
+    let msgArr = []
+    for (let i = 0; i < 100; i++) {
+        const chunk = channel.messages[channel.messages.length - (i + 1 + (messageChunk ? (Number(messageChunk) * 100) : 0))]
+        if(!chunk) break
+        await chunk.populate("messages")
+        msgArr.push(chunk)
+        console.log(msgArr)
+    }
+    if(group.is_public) return JSON.stringify(msgArr)
     if(!totp || !uid || !homeserver){
         console.log(totp, uid, homeserver)
         set.status = 401
@@ -150,8 +163,12 @@ app
     if(res.isError){
         return res.msg
     }
-    if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
-        return JSON.stringify((group.channels[0] as any).messages)
+    if(group.owner_id?.id == uid || group.members.find(e =>{
+        if(e.id != uid) return false
+        if(e.server != homeserver) return false
+        return e
+    })){
+        return JSON.stringify(msgArr)
     }else{
         set.status = 401
         return "unauthorized"
@@ -164,10 +181,8 @@ app
             set.status = 404
             return "group not found"
         }
-        await group.populate({
-            path: "channels",
-            select: "-messages"
-        });
+        console.log(group, "group")
+        await group.populate("channels");
         if(group.has_channels){
             set.status = 400
             return "this group has channels"
@@ -181,6 +196,7 @@ app
                 type: "text",
                 name: "General"
             })
+            await ch.save()
             group.channels.push(ch as any)
             await group.save()
         }
@@ -189,7 +205,11 @@ app
         if(res.isError){
             return res.msg
         }
-        if(group.members.find(e => e.id == uid && e.id.server == homeserver)){
+        if(group.members.find(e =>{
+            if(e.id != uid) return false
+            if(e.server != homeserver) return false
+            return e
+        })){
             const amityId = new AmityId({ id: randomID(), server: Bun.env.SERVER_URL })
             const msg = new Message({
                 id: amityId,
@@ -204,12 +224,16 @@ app
             })
             await msg.save()
             var latestCluster: any;
-            console.log(channel?.messages.length)
-            if(channel?.messages.length != 0){
+            console.log(channel, "here")
+            await channel.populate("messages")
+            if(channel?.messages?.length > 0){
                 latestCluster = channel?.messages[channel.messages.length - 1]
+                await latestCluster.populate("messages")
             }
+            console.log(latestCluster, "LC")
             if(!latestCluster || latestCluster.messages.length == 100){
                 const newCluster = new MessageCluster({
+                    id: new AmityId({ id: randomID(), server: Bun.env.SERVER_URL }),
                     author: {
                         id: uid,
                         server: homeserver
@@ -218,7 +242,10 @@ app
                     messages: [msg]
                 })
                 await newCluster.save()
-                channel.messages.push(newCluster)
+                newCluster.populate("messages")
+                console.log(newCluster)
+                channel.messages.push(await newCluster)
+                console.log(channel.messages)
                 await channel.save()
                 return
             }else{
@@ -228,6 +255,7 @@ app
             }
         }else{
             set.status = 401
+            console.log("aici")
             return "unauthorized"
         }
     }catch(e){
