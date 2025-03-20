@@ -126,42 +126,35 @@ app
     }
 })
 .get("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
-    try{
-        const group = await Group.findOne({"id.id": id})
-        if(!group){
-            set.status = 404
-            return "group not found"
-        }
-        await group.populate({
-            path: "channels",
-            select: "-messages"
-        });
-        if(group.has_channels){
-            set.status = 400
-            return "this group has channels"
-        }
-        const channel = group.channels[0] as any
-        if(group.is_public) return JSON.stringify((group.channels[0] as any).messages)
-        if(!totp || !uid || !homeserver){
-            console.log(totp, uid, homeserver)
-            set.status = 401
-            return "can't authenticate user"
-        }
-        const res: {isError: boolean, msg: string} = await checkTotp(totp as string, homeserver as string, uid as string, set)
-        if(res.isError){
-            return res.msg
-        }
-        if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
-            console.log(group)
-            return JSON.stringify(channel.messages)
-        }else{
-            set.status = 401
-            return "unauthorized"
-        }
-    }catch(e){
-        set.status = 500;
-        console.error(e)
-        return e
+    const group = await Group.findOne({"id.id": id})
+    if(!group){
+        set.status = 404
+        return "group not found"
+    }
+    await group.populate({
+        path: "channels",
+        select: "-messages"
+    });
+    if(group.has_channels){
+        set.status = 400
+        return "this group has channels"
+    }
+    const channel = group.channels[0]
+    if(group.is_public) return JSON.stringify((group.channels[0] as any).messages)
+    if(!totp || !uid || !homeserver){
+        console.log(totp, uid, homeserver)
+        set.status = 401
+        return "can't authenticate user"
+    }
+    const res: {isError: boolean, msg: string} = await checkTotp(totp as string, homeserver as string, uid as string, set)
+    if(res.isError){
+        return res.msg
+    }
+    if(group.owner_id?.id == uid || group.members.find(e => e.id.id == uid && e.id.server == homeserver)){
+        return JSON.stringify((group.channels[0] as any).messages)
+    }else{
+        set.status = 401
+        return "unauthorized"
     }
 })
 .post("/:id/messages", async ({ jwt, set, query: { totp, uid, homeserver }, body, params: { id } }) => {
@@ -196,7 +189,7 @@ app
         if(res.isError){
             return res.msg
         }
-        if(group.members.find(e => e.id == uid && e.server == homeserver)){
+        if(group.members.find(e => e.id == uid && e.id.server == homeserver)){
             const amityId = new AmityId({ id: randomID(), server: Bun.env.SERVER_URL })
             const msg = new Message({
                 id: amityId,
