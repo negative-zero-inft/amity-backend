@@ -5,7 +5,7 @@ export const chatSchema = new mongoose.Schema({
     index: Number,
     id: amityIdSchema,
     name: String,
-    members: [{id: String,server: String}],
+    members: [{type: amityIdSchema, unique: false}],
     pinned: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
 });

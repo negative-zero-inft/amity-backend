@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema({
     avatar: String,
     banner: String,
     public_channels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }],
-    followers: [{id: String,server: String}],
-    follows: [{id: String,server: String}],
+    followers: [{type: amityIdSchema, unique: false}],
+    follows: [{type: amityIdSchema, unique: false}],
     public_key: String,
     authNumber: {type: Number, unique: true},
     connections: [{
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     }],
     chats: [{
         chat_type: String, //group / chat / anything else
-        id: {id: String,server: String}
+        id: {type: amityIdSchema, unique: false}
     }],
     chat_folders: [chatFolderSchema],
     password: String,
