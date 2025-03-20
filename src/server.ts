@@ -46,7 +46,7 @@ const app = new Elysia()
         .use(google)
         .use(osu)
     )
-    .listen(env.PORT ?? 3000);
+    .listen({hostname: "0.0.0.0", port: env.PORT ?? 3000});
 
 app.on("request", (r) => {
     console.log("received a request for" + r.path)
